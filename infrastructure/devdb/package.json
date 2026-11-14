@@ -1,0 +1,7 @@
+{
+  "name": "@help/devdb",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "node start.mjs" },
+  "dependencies": { "embedded-postgres": "^17.5.0-beta.15" }
+}

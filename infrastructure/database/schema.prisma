@@ -1,0 +1,797 @@
+// Single source of truth for the database (Neon Postgres + PostGIS).
+// Proximity queries use PostGIS on (lat,lng) via raw SQL; see migrations/*_geo.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [postgis, pg_trgm]
+}
+
+// ============ identity ============
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+model User {
+  id                String     @id @default(cuid())
+  name              String?
+  email             String?    @unique
+  emailVerified     Boolean    @default(false)
+  phone             String?    @unique
+  phoneVerified     Boolean    @default(false)
+  avatarUrl         String?
+  preferredLanguage String     @default("en")
+  city              String?
+  lat               Float?
+  lng               Float?
+  timezone          String     @default("Asia/Kolkata")
+  status            UserStatus @default(ACTIVE)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+
+  identities      AuthIdentity[]
+  sessions        Session[]
+  provider        ProviderProfile?
+  conversations   Conversation[]      @relation("CustomerConversations")
+  providerViews   ProviderView[]
+  messages        Message[]
+  reviews         Review[]
+  saved           SavedProfessional[]
+  notifications   Notification[]
+  pushTokens      PushToken[]
+  reports         Report[]            @relation("Reporter")
+  blocks          Block[]             @relation("Blocker")
+  blockedBy       Block[]             @relation("Blocked")
+  recentSearches  RecentSearch[]
+  consents        Consent[]
+  notificationPreference NotificationPreference?
+  supportTickets  SupportTicket[]
+}
+
+enum IdentityProvider {
+  GOOGLE
+  PHONE
+  EMAIL
+}
+
+model AuthIdentity {
+  id             String           @id @default(cuid())
+  userId         String
+  provider       IdentityProvider
+  providerUserId String
+  email          String?
+  createdAt      DateTime         @default(now())
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+}
+
+model Session {
+  id               String    @id @default(cuid())
+  userId           String
+  refreshTokenHash String    @unique
+  familyId         String
+  deviceName       String?
+  platform         String
+  ip               String?
+  userAgent        String?
+  lastUsedAt       DateTime  @default(now())
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+}
+
+model OtpChallenge {
+  id         String    @id @default(cuid())
+  /// PHONE or EMAIL; `phone` holds the identifier (E.164 number or lower-cased email).
+  channel    String    @default("PHONE")
+  phone      String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
+model Consent {
+  id        String   @id @default(cuid())
+  userId    String
+  kind      String // TERMS, PRIVACY, MARKETING
+  version   String
+  granted   Boolean
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind])
+}
+
+// ============ catalogue ============
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  icon      String?
+  parentId  String?
+  isActive  Boolean    @default(true)
+  sortOrder Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  providers ProviderProfile[]
+  services  ServiceOffering[]
+}
+
+model Skill {
+  id        String          @id @default(cuid())
+  name      String          @unique
+  providers ProviderSkill[]
+}
+
+// ============ providers ============
+
+enum ProviderStatus {
+  DRAFT
+  PUBLISHED
+  HIDDEN // admin-hidden or self-unpublished
+  SUSPENDED
+}
+
+enum PresenceStatus {
+  AVAILABLE
+  BUSY
+  AWAY
+}
+
+enum ServiceMode {
+  ONSITE
+  REMOTE
+  BOTH
+}
+
+model ProviderProfile {
+  id                  String         @id @default(cuid())
+  userId              String         @unique
+  slug                String         @unique
+  status              ProviderStatus @default(DRAFT)
+  /// Denormalised: PUBLISHED && entitled subscription. Recomputed by subscription + publish flows.
+  isDiscoverable      Boolean        @default(false)
+  displayName         String
+  headline            String?
+  bio                 String?
+  avatarUrl           String?
+  coverUrl            String?
+  primaryCategoryId   String?
+  experienceYears     Int            @default(0)
+  languages           String[]       @default([])
+  qualifications      String[]       @default([])
+  // Location: public shows locality only; lat/lng are approximate service centre, never returned raw.
+  city                String?
+  pinCode             String?
+  locality            String?
+  lat                 Float?
+  lng                 Float?
+  serviceRadiusKm     Float          @default(10)
+  serviceMode         ServiceMode    @default(ONSITE)
+  areasServed         String[]       @default([])
+  // Availability
+  timezone            String         @default("Asia/Kolkata")
+  appointmentOnly     Boolean        @default(false)
+  presenceStatus      PresenceStatus @default(AVAILABLE)
+  statusMessage       String?
+  statusUntil         DateTime?
+  statusUpdatedAt     DateTime?
+  /// Provider-hidden profile (keeps subscription, data, reviews).
+  isPaused            Boolean        @default(false)
+  showPhone           Boolean        @default(true)
+  autoReplyEnabled    Boolean        @default(true)
+  autoReplyText       String?
+  quickReplies        String[]       @default([])
+  // Reputation (denormalised, updated transactionally on review changes)
+  ratingAvg           Float?
+  ratingCount         Int            @default(0)
+  responseMinutes     Int?
+  completeness        Float          @default(0)
+  verificationLevel   Int            @default(0)
+  mobileVerified      Boolean        @default(false)
+  identityVerified    Boolean        @default(false)
+  qualificationVerified Boolean      @default(false)
+  sponsoredUntil      DateTime?
+  hiddenByAdmin       Boolean        @default(false)
+  publishedAt         DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  deletedAt           DateTime?
+
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  primaryCategory Category?               @relation(fields: [primaryCategoryId], references: [id])
+  skills          ProviderSkill[]
+  services        ServiceOffering[]
+  availability    AvailabilityRule[]
+  exceptions      AvailabilityException[]
+  portfolio       PortfolioItem[]
+  verifications   Verification[]
+  subscriptions   Subscription[]
+  conversations   Conversation[]
+  views           ProviderView[]
+  reviews         Review[]
+  savedBy         SavedProfessional[]
+  slugHistory     SlugHistory[]
+  stats           ProviderDailyStat[]
+
+  @@index([isDiscoverable, primaryCategoryId])
+  @@index([status])
+}
+
+model SlugHistory {
+  id         String          @id @default(cuid())
+  slug       String          @unique
+  providerId String
+  createdAt  DateTime        @default(now())
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+model ProviderSkill {
+  providerId String
+  skillId    String
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  skill      Skill           @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([providerId, skillId])
+  @@index([skillId])
+}
+
+enum PriceUnit {
+  HOURLY
+  PER_VISIT
+  FIXED
+  STARTING_AT
+  PER_DAY
+  PER_SESSION
+}
+
+model ServiceOffering {
+  id              String          @id @default(cuid())
+  providerId      String
+  categoryId      String?
+  title           String
+  description     String?
+  priceUnit       PriceUnit
+  pricePaise      Int
+  negotiable      Boolean         @default(false)
+  durationMinutes Int?
+  isActive        Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  provider        ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category        Category?       @relation(fields: [categoryId], references: [id])
+
+  @@index([providerId])
+}
+
+model AvailabilityRule {
+  id          String          @id @default(cuid())
+  providerId  String
+  weekday     Int
+  startMinute Int
+  endMinute   Int
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, weekday])
+}
+
+model AvailabilityException {
+  id         String          @id @default(cuid())
+  providerId String
+  startsAt   DateTime
+  endsAt     DateTime
+  reason     String?
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, startsAt])
+}
+
+enum PortfolioKind {
+  IMAGE
+  VIDEO
+  LINK
+  CERTIFICATE
+}
+
+model PortfolioItem {
+  id          String          @id @default(cuid())
+  providerId  String
+  kind        PortfolioKind
+  url         String
+  title       String?
+  description String?
+  sortOrder   Int             @default(0)
+  createdAt   DateTime        @default(now())
+  deletedAt   DateTime?
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+}
+
+enum VerificationType {
+  MOBILE
+  IDENTITY
+  QUALIFICATION
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Verification {
+  id          String             @id @default(cuid())
+  providerId  String
+  type        VerificationType
+  status      VerificationStatus @default(PENDING)
+  label       String?
+  documentUrl String? // private Cloudinary asset; never exposed publicly
+  reviewedBy  String?
+  reviewNote  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime           @default(now())
+  provider    ProviderProfile    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([providerId])
+}
+
+model ProviderDailyStat {
+  providerId  String
+  day         DateTime        @db.Date
+  views       Int             @default(0)
+  impressions Int             @default(0)
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@id([providerId, day])
+}
+
+// ============ subscriptions & payments ============
+
+enum PlanInterval {
+  MONTHLY
+  YEARLY
+}
+
+model SubscriptionPlan {
+  id             String         @id @default(cuid())
+  code           String         @unique
+  name           String
+  interval       PlanInterval
+  pricePaise     Int
+  features       String[]       @default([])
+  razorpayPlanId String?        @unique
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  subscriptions  Subscription[]
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  PENDING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+  HALTED
+}
+
+model Subscription {
+  id                     String             @id @default(cuid())
+  providerId             String
+  planId                 String
+  status                 SubscriptionStatus @default(INCOMPLETE)
+  razorpaySubscriptionId String?            @unique
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  pastDueSince           DateTime?
+  cancelAtPeriodEnd      Boolean            @default(false)
+  cancelledAt            DateTime?
+  lastEventAt            DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  provider               ProviderProfile    @relation(fields: [providerId], references: [id])
+  plan                   SubscriptionPlan   @relation(fields: [planId], references: [id])
+  payments               Payment[]
+  history                SubscriptionEvent[]
+
+  @@index([providerId, status])
+  // Partial unique index "one live subscription per provider" lives in migration SQL.
+}
+
+model SubscriptionEvent {
+  id             String             @id @default(cuid())
+  subscriptionId String
+  fromStatus     SubscriptionStatus?
+  toStatus       SubscriptionStatus
+  source         String // webhook | verify | job | admin
+  eventId        String?
+  createdAt      DateTime           @default(now())
+  subscription   Subscription       @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId, createdAt])
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  subscriptionId    String
+  razorpayPaymentId String        @unique
+  razorpayInvoiceId String?
+  amountPaise       Int
+  currency          String        @default("INR")
+  status            PaymentStatus
+  method            String?
+  failureReason     String?
+  invoiceUrl        String?
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  subscription      Subscription  @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId, createdAt])
+}
+
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  source      String // razorpay
+  eventId     String
+  type        String
+  payload     Json
+  processedAt DateTime?
+  error       String?
+  receivedAt  DateTime  @default(now())
+
+  @@unique([source, eventId])
+}
+
+// ============ conversations (directory model: chat only) ============
+
+/// One thread per customer-provider pair.
+model Conversation {
+  id                       String          @id @default(cuid())
+  customerId               String
+  providerId               String
+  lastMessageAt            DateTime        @default(now())
+  customerLastReadAt       DateTime?
+  providerLastReadAt       DateTime?
+  providerFirstReplyAt     DateTime?
+  /// statusUpdatedAt value of the provider status period for which an auto-reply was already sent.
+  autoReplySentForStatusAt DateTime?
+  createdAt                DateTime        @default(now())
+  customer                 User            @relation("CustomerConversations", fields: [customerId], references: [id])
+  provider                 ProviderProfile @relation(fields: [providerId], references: [id])
+  messages                 Message[]
+
+  @@unique([customerId, providerId])
+  @@index([providerId, lastMessageAt])
+  @@index([customerId, lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  /// true for automatic Busy/Away replies
+  auto           Boolean      @default(false)
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+}
+
+enum ContactKind {
+  CHAT_STARTED
+  PHONE_REVEALED
+  SAVED
+  PROFILE_VIEW
+}
+
+model ContactEvent {
+  id         String      @id @default(cuid())
+  providerId String
+  userId     String?
+  kind       ContactKind
+  createdAt  DateTime    @default(now())
+
+  @@index([providerId, kind, createdAt])
+  @@index([userId, kind, createdAt])
+}
+
+/// Recently viewed profiles per user.
+model ProviderView {
+  userId     String
+  providerId String
+  viewedAt   DateTime        @default(now())
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@id([userId, providerId])
+  @@index([userId, viewedAt])
+}
+
+// ============ reputation & trust ============
+
+enum ReviewStatus {
+  VISIBLE
+  HIDDEN
+  REMOVED
+}
+
+model Review {
+  id            String          @id @default(cuid())
+  providerId    String
+  authorId      String
+  overall       Int
+  quality       Int
+  behaviour     Int
+  punctuality   Int
+  value         Int
+  communication Int
+  comment       String?
+  reply         String?
+  repliedAt     DateTime?
+  status        ReviewStatus    @default(VISIBLE)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  provider      ProviderProfile @relation(fields: [providerId], references: [id])
+  author        User            @relation(fields: [authorId], references: [id])
+
+  @@unique([authorId, providerId])
+  @@index([providerId, status, createdAt])
+}
+
+model SavedProfessional {
+  userId     String
+  providerId String
+  createdAt  DateTime        @default(now())
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@id([userId, providerId])
+}
+
+model RecentSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  targetType String
+  targetId   String
+  reason     String
+  details    String?
+  status     ReportStatus @default(OPEN)
+  resolution String?
+  handledBy  String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  reporter   User         @relation("Reporter", fields: [reporterId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+model Block {
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+}
+
+// ============ notifications & email ============
+
+enum NotificationCategory {
+  STATUS
+  MESSAGES
+  REVIEWS
+  PAYMENTS
+  ACCOUNT
+  PROMOTIONS
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  type      String
+  category  NotificationCategory @default(ACCOUNT)
+  title     String
+  body      String
+  link      String?
+  imageUrl  String?
+  groupKey  String?
+  important Boolean              @default(false)
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, groupKey])
+}
+
+model NotificationPreference {
+  userId     String   @id
+  channels   Json
+  quietHours Json
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum EmailStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+model EmailLog {
+  id          String      @id @default(cuid())
+  /// Dedupe key e.g. "ticket-reply:<messageId>" — prevents duplicate sends.
+  dedupeKey   String      @unique
+  to          String
+  template    String
+  status      EmailStatus @default(QUEUED)
+  attempts    Int         @default(0)
+  lastError   String?
+  vars        Json?
+  sentAt      DateTime?
+  createdAt   DateTime    @default(now())
+}
+
+// ============ admin ============
+
+enum AdminRole {
+  SUPER_ADMIN
+  OPERATIONS
+  SUPPORT
+  FINANCE
+  MODERATOR
+}
+
+model AdminUser {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  role         AdminRole
+  isActive     Boolean    @default(true)
+  lastLoginAt  DateTime?
+  /// Tokens signed before the latest password change are rejected.
+  passwordChangedAt DateTime?
+  createdAt    DateTime   @default(now())
+  auditLogs    AuditLog[]
+}
+
+model AdminPasswordReset {
+  id        String    @id @default(cuid())
+  adminId   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([adminId])
+}
+
+enum TicketStatus {
+  OPEN
+  WAITING_ON_USER
+  RESOLVED
+  CLOSED
+}
+
+model SupportTicket {
+  id            String        @id @default(cuid())
+  number        Int           @unique @default(autoincrement())
+  userId        String
+  category      String
+  subject       String
+  status        TicketStatus  @default(OPEN)
+  providerId    String?
+  lastMessageAt DateTime      @default(now())
+  userLastReadAt DateTime?
+  createdAt     DateTime      @default(now())
+  user          User          @relation(fields: [userId], references: [id])
+  messages      SupportMessage[]
+
+  @@index([userId, lastMessageAt])
+  @@index([status, lastMessageAt])
+}
+
+model SupportMessage {
+  id            String        @id @default(cuid())
+  ticketId      String
+  authorUserId  String?
+  authorAdminId String?
+  body          String
+  attachments   String[]      @default([])
+  createdAt     DateTime      @default(now())
+  ticket        SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+}
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String?
+  before     Json?
+  after      Json?
+  ip         String?
+  createdAt  DateTime  @default(now())
+  admin      AdminUser @relation(fields: [adminId], references: [id])
+
+  @@index([targetType, targetId])
+  @@index([adminId, createdAt])
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

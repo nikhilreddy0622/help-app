@@ -1,0 +1,43 @@
+{
+  "name": "@help/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build && vite build --ssr src/entry-server.tsx --outDir dist/server",
+    "start": "tsx server.ts --prod",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@help/api-client": "workspace:*",
+    "@help/domain": "workspace:*",
+    "@help/types": "workspace:*",
+    "@help/ui-tokens": "workspace:*",
+    "@help/validation": "workspace:*",
+    "@tanstack/react-query": "^5.62.0",
+    "compression": "^1.7.5",
+    "express": "^4.21.2",
+    "lucide-react": "^0.468.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-helmet-async": "^2.0.5",
+    "react-router-dom": "^6.28.0",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.7.5",
+    "@types/express": "^4.17.21",
+    "@types/pngjs": "^6.0.5",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "pngjs": "^7.0.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

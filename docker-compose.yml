@@ -1,0 +1,12 @@
+# Local development database (PostGIS, same extension Neon provides).
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: help
+      POSTGRES_PASSWORD: help
+      POSTGRES_DB: help
+    ports: ["5432:5432"]
+    volumes: [dbdata:/var/lib/postgresql/data]
+volumes:
+  dbdata:

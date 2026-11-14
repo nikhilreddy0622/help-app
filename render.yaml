@@ -1,0 +1,83 @@
+# Render deployment for the help backend + SSR website.
+# Both are Node (Express) services. Create them with: Render Dashboard -> New -> Blueprint -> pick this repo.
+# Set the env vars marked "sync: false" in the Render dashboard (they are secrets).
+services:
+  # ---------------- API (backend) ----------------
+  - type: web
+    name: help-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @help/api build
+    # migrate deploy is idempotent; runs on each boot so the schema is always current.
+    startCommand: pnpm --filter @help/api exec prisma migrate deploy --schema ../../infrastructure/database/schema.prisma && pnpm --filter @help/api start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL          # Neon POOLED url (Singapore)
+        sync: false
+      - key: DIRECT_URL            # Neon DIRECT url (for migrations)
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS          # e.g. https://help-web.vercel.app,https://help-admin.vercel.app
+        sync: false
+      - key: PUBLIC_WEB_URL
+        sync: false
+      - key: ADMIN_WEB_URL
+        sync: false
+      - key: GOOGLE_CLIENT_IDS
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: OTP_PROVIDER
+        value: console
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY   # optional; blank = free OpenStreetMap
+        sync: false
+      - key: SEED_DEMO
+        value: "false"
+
+  # ---------------- Website (SSR) ----------------
+  # Optional: use this if you deploy the website on Render instead of Vercel (keeps server-side rendering).
+  - type: web
+    name: help-web
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @help/web build
+    startCommand: pnpm --filter @help/web start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_API_URL          # https://help-api.onrender.com/api/v1
+        sync: false
+      - key: API_URL               # same as VITE_API_URL (used by SSR)
+        sync: false
+      - key: SITE_URL              # https://help-web.onrender.com
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false

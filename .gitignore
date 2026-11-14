@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.turbo/
+.env
+.env.*
+!.env.example
+.expo/
+*.log
+coverage/
+infrastructure/devdb/data/
+.neon
+services/api/uploads/
