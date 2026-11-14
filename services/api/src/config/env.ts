@@ -47,14 +47,19 @@ function load(): Env {
   }
   const env = parsed.data;
   if (env.NODE_ENV === 'production') {
-    const required: (keyof Env)[] = ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET', 'SMTP_HOST'];
+    // Hard requirements: real session secrets and a real mail server (email OTP must never be silently unsafe).
+    const required: (keyof Env)[] = ['SMTP_HOST'];
     const missing: string[] = required.filter((k) => !env[k]);
     if (env.JWT_ACCESS_SECRET.startsWith('dev-') || env.JWT_REFRESH_SECRET.startsWith('dev-')) missing.push('JWT_*_SECRET');
-    if (env.OTP_PROVIDER === 'console') missing.push('OTP_PROVIDER (console not allowed in production)');
     if (missing.length) {
       console.error('Missing production configuration:', missing.join(', '));
       process.exit(1);
     }
+    // Soft requirements: fine to launch without these, but each is a real gap until it's set.
+    const warnings: string[] = [];
+    if (!env.RAZORPAY_KEY_ID || !env.RAZORPAY_KEY_SECRET || !env.RAZORPAY_WEBHOOK_SECRET) warnings.push('Razorpay is not configured — provider subscriptions/payments are disabled until RAZORPAY_* is set.');
+    if (env.OTP_PROVIDER === 'console') warnings.push('OTP_PROVIDER=console in production — phone-OTP codes are only written to these server logs (no SMS is sent). Set MSG91/Firebase before relying on phone sign-in for real users. Email OTP is unaffected (it always uses SMTP).');
+    if (warnings.length) warnings.forEach((w) => console.warn(`[startup] ${w}`));
   }
   return env;
 }

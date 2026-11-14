@@ -1,0 +1,20 @@
+{
+  "cli": { "version": ">= 13.2.0", "appVersionSource": "remote" },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": { "gradleCommand": ":app:assembleDebug" }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "env": { "EXPO_PUBLIC_API_URL": "https://help-api.onrender.com/api/v1" }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": { "EXPO_PUBLIC_API_URL": "https://help-api.onrender.com/api/v1" }
+    }
+  },
+  "submit": { "production": {} }
+}

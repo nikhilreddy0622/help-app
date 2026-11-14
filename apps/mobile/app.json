@@ -19,9 +19,10 @@
     "android": {
       "package": "com.helpapp.mobile",
       "permissions": [
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "POST_NOTIFICATIONS"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ],
       "blockedPermissions": [
         "RECORD_AUDIO",
@@ -73,6 +74,17 @@
     "icon": "./assets/icon.png",
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "46b23ab5-8f44-498e-9c86-4b58ac5ef710"
+      }
+    },
+    "owner": "nikhil_daram"
   }
 }
