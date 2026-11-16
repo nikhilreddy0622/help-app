@@ -25,8 +25,8 @@ function Form({ initial }: { initial: NotificationPreferences }) {
             <fieldset key={c} className="px-5 py-3">
               <legend className="sr-only">{CATEGORY_META[c].label}</legend>
               <p className="mb-1 flex items-center gap-2 font-medium text-navy"><Icon className="h-4 w-4 text-teal" aria-hidden />{CATEGORY_META[c].label}</p>
-              <Toggle label="Push notifications" checked={p.channels[c].push} onChange={(v) => setP({ ...p, channels: { ...p.channels, [c]: { ...p.channels[c], push: v } } })} />
-              <Toggle label="Email" checked={p.channels[c].email} onChange={(v) => setP({ ...p, channels: { ...p.channels, [c]: { ...p.channels[c], email: v } } })} />
+              <Toggle label="Push notifications" checked={p.channels[c]?.push ?? true} onChange={(v) => setP({ ...p, channels: { ...p.channels, [c]: { ...(p.channels[c] ?? { push: true, email: true }), push: v } } })} />
+              <Toggle label="Email" checked={p.channels[c]?.email ?? true} onChange={(v) => setP({ ...p, channels: { ...p.channels, [c]: { ...(p.channels[c] ?? { push: true, email: true }), email: v } } })} />
             </fieldset>
           );
         })}

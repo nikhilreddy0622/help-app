@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Briefcase, ChevronRight, Zap } from 'lucide-react-native';
 import { STATUS_MESSAGE_MAX, updatedAgo } from '@help/domain';
 import type { PresenceStatus, ProviderDashboard } from '@help/types';
 import { DateTimeSheet } from '@/components/DateTimeSheet';
@@ -117,6 +118,8 @@ export default function Dashboard() {
   const router = useRouter();
   const { me } = useSession();
   const q = useQuery({ queryKey: ['dashboard'], queryFn: () => api.providers.dashboard() });
+  const liveQ = useQuery({ queryKey: ['live-incoming'], queryFn: () => api.liveRequests.incoming(), refetchInterval: 30_000 });
+  const liveCount = (liveQ.data ?? []).filter((r) => r.myResponse?.status !== 'INTERESTED').length;
   const header = (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, paddingBottom: 8 }}>
       <View style={{ flex: 1 }}><T v="caption">Welcome back</T><T v="title" numberOfLines={1}>{me?.name ?? 'Dashboard'}</T></View>
@@ -146,6 +149,20 @@ export default function Dashboard() {
                   <Button kind="ghost" size="sm" title="Complete profile" style={{ alignSelf: 'flex-start', paddingHorizontal: 0 }} onPress={() => router.push('/p-profile')} />
                 </View>
               ) : <T v="caption">{d.isPublished ? 'Your profile is complete and published.' : 'Your profile is ready to publish.'}</T>}
+            </Card>
+            <Card onPress={() => router.push('/live/incoming')} accessibilityLabel="See live requests from customers">
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: colors.navy, alignItems: 'center', justifyContent: 'center' }}><Zap size={20} color="#fff" /></View>
+                <View style={{ flex: 1 }}><T v="heading" color={colors.text}>Live requests</T><T v="caption">Customers who need help right now</T></View>
+                {liveCount > 0 ? <View style={{ minWidth: 22, height: 22, borderRadius: 11, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }}><T v="caption" color="#fff" weight={700}>{liveCount}</T></View> : <ChevronRight size={20} color={colors.textMuted} />}
+              </View>
+            </Card>
+            <Card onPress={() => router.push('/my-jobs')} accessibilityLabel="Manage your job postings">
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: colors.tealTint, alignItems: 'center', justifyContent: 'center' }}><Briefcase size={20} color={colors.teal700} /></View>
+                <View style={{ flex: 1 }}><T v="heading" color={colors.text}>Hiring help?</T><T v="caption">Post a job and reach seekers nearby</T></View>
+                <ChevronRight size={20} color={colors.textMuted} />
+              </View>
             </Card>
           </>
         )}

@@ -1,5 +1,12 @@
 # Implementation checklist
 
+## Jobs board + swipe nav (owner request, 2026-11-16) — DONE (local, not pushed)
+- [x] Jobs backend: `JobPosting` model + migration `20261116085142_job_postings`, `jobs` module (search/get/reveal-phone/CRUD/status), contract in api-client, DTOs, validation. Verified end to end against Neon. 31/31 existing tests still pass.
+- [~] Mobile swipe navigation: attempted with material-top-tabs pager; it would not register with expo-router (broke the app), so REVERTED. Tabs are tap-only (owner decision 2026-11-16). Swipe deferred to a different approach if revisited.
+- [x] Mobile jobs UI: `app/jobs.tsx` (browse/search), `app/job/[id].tsx` (detail + phone reveal), `app/my-jobs.tsx` (provider manager), `app/job/edit.tsx` (post/edit). Entry points on customer home + provider dashboard.
+- [ ] UI "de-AI-ify" / humanization pass across web + mobile — NOT started (large, subjective; separate task).
+- Note: all typechecks pass (9/9). Nothing pushed or deployed per owner instruction (local only).
+
 ## IN PROGRESS: directory/mediator pivot (owner request, 2026-11-14) — resume here
 Customers only browse, compare, save, chat in-app, reveal phone (with Copy) and review. NO booking requests.
 - [x] domain: `presence.ts` (AVAILABLE/BUSY/AWAY + message + until auto-return, pause = hidden, freshness, auto-reply), `canReviewProvider` (provider replied in a chat, once). booking.ts REMOVED. 16/16 tests pass.

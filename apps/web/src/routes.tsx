@@ -34,6 +34,8 @@ export const routes: RouteObject[] = [
       { path: 'support/:id', element: lz(() => import('./pages/support/Support').then((m) => ({ default: m.SupportTicket }))) },
       { path: 'login', element: lz(() => import('./pages/Login')) },
       { path: 'notifications', element: lz(() => import('./pages/account/NotificationsPage')) },
+      { path: 'live/new', element: lz(() => import('./pages/live/Live').then((m) => ({ default: m.RequestNow }))) },
+      { path: 'live/status', element: lz(() => import('./pages/live/Live').then((m) => ({ default: m.LiveStatus }))) },
       {
         path: 'account', element: <AreaLayout area="customer" />,
         children: [
@@ -51,6 +53,8 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: lz(() => import('./pages/pro/Dashboard')) },
           { path: 'insights', element: lz(() => import('./pages/pro/Insights')) },
+          { path: 'live', element: lz(() => import('./pages/live/Live').then((m) => ({ default: m.LiveIncoming }))) },
+          { path: 'live/settings', element: lz(() => import('./pages/live/Live').then((m) => ({ default: m.LiveSettings }))) },
           { path: 'settings', element: lz(() => import('./pages/pro/ProSettings')) },
           { path: 'messages', element: lz(() => import('./pages/account/Messages')) },
           { path: 'messages/:conversationId', element: lz(() => import('./pages/account/Messages')) },

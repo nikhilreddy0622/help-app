@@ -152,7 +152,7 @@ export async function listCategories(): Promise<Category[]> {
   const groups = cats.filter((c) => !c.parentId);
   const ordered = groups.flatMap((g) => [g, ...cats.filter((c) => c.parentId === g.id)]);
   const orphans = cats.filter((c) => c.parentId && !groups.some((g) => g.id === c.parentId));
-  return [...ordered, ...orphans].map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, parentId: c.parentId, providerCount: total.get(c.id) ?? 0 }));
+  return [...ordered, ...orphans].map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, parentId: c.parentId, providerCount: total.get(c.id) ?? 0, supportsLiveRequest: c.supportsLiveRequest }));
 }
 
 /** Home feed: categories + availableNow + topRated + recentlyActive near the user. */

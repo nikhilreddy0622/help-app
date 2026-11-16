@@ -15,8 +15,13 @@ function Stat({ value, label }: { value: React.ReactNode; label: string }) {
   return <div className="flex flex-1 flex-col items-center gap-0.5 px-2 py-1 text-center"><b className="text-lg text-navy">{value}</b><span className="text-xs text-subtle">{label}</span></div>;
 }
 
+/** Consistent, soft placeholder for empty sections so a sparse profile still reads as finished, not broken. */
+function EmptyNote({ children }: { children: React.ReactNode }) {
+  return <p className="rounded-xl border border-dashed border-line-strong bg-white px-4 py-3.5 text-sm text-subtle">{children}</p>;
+}
+
 function WorkingHours({ p }: { p: ProviderPublicProfile }) {
-  if (p.workingHours.rules.length === 0) return <p className="text-sm text-subtle">Working hours not specified. Send a message to ask.</p>;
+  if (p.workingHours.rules.length === 0) return <EmptyNote>Working hours not set — message to check availability.</EmptyNote>;
   const byDay = WEEKDAYS.map((name, d) => ({ name, ranges: p.workingHours.rules.filter((r) => r.weekday === d).sort((a, b) => a.startMinute - b.startMinute) }));
   return (
     <div>
@@ -96,8 +101,8 @@ export function ProfileView({ p, reviewSlot }: { p: ProviderPublicProfile; revie
           ))}
         </nav>
 
-        <section id="services" className="scroll-mt-32 pt-8"><SectionTitle>Services and prices</SectionTitle>
-          {p.services.length === 0 ? <p className="text-sm text-subtle">Prices on request.</p> : (
+        <section id="services" className="scroll-mt-28 pt-7"><SectionTitle>Services and prices</SectionTitle>
+          {p.services.length === 0 ? <EmptyNote>No fixed prices listed — message to ask for a quote.</EmptyNote> : (
             <ul className="card divide-y divide-divider px-5">{p.services.map((s) => (
               <li key={s.id} className="flex items-start justify-between gap-4 py-3.5">
                 <div className="min-w-0"><p className="font-medium text-navy">{s.title}</p>{s.description && <p className="mt-0.5 text-sm text-subtle">{s.description}</p>}{s.durationMinutes && <p className="mt-0.5 text-xs text-muted">About {s.durationMinutes} min</p>}</div>
@@ -105,20 +110,21 @@ export function ProfileView({ p, reviewSlot }: { p: ProviderPublicProfile; revie
               </li>))}
             </ul>)}
         </section>
-        <section id="about" className="scroll-mt-32 pt-8"><SectionTitle>About</SectionTitle>
-          {p.bio && <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">{p.bio}</p>}
+        <section id="about" className="scroll-mt-28 pt-7"><SectionTitle>About</SectionTitle>
+          {p.bio ? <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">{p.bio}</p>
+            : (p.skills.length === 0 && p.qualifications.length === 0 && p.areasServed.length === 0) && <EmptyNote>This professional hasn’t added a description yet.</EmptyNote>}
           {p.skills.length > 0 && <ul className="mt-4 flex flex-wrap gap-2">{p.skills.map((s) => <li key={s} className="rounded-full bg-surface px-3 py-1 text-sm text-subtle">{s}</li>)}</ul>}
           {p.qualifications.length > 0 && <p className="mt-4 flex items-start gap-2 text-sm text-subtle"><Briefcase className="mt-0.5 h-4 w-4 flex-none text-navy" aria-hidden />{p.qualifications.join(' · ')}</p>}
           {p.areasServed.length > 0 && <p className="mt-2 text-sm text-subtle">Areas served: {p.areasServed.join(', ')}</p>}
         </section>
-        <section id="availability" className="scroll-mt-32 pt-8"><SectionTitle>Working hours</SectionTitle><WorkingHours p={p} /></section>
-        <section id="portfolio" className="scroll-mt-32 pt-8"><SectionTitle>Portfolio</SectionTitle>
-          {images.length === 0 ? <p className="text-sm text-subtle">No portfolio items yet.</p> : (
+        <section id="availability" className="scroll-mt-28 pt-7"><SectionTitle>Working hours</SectionTitle><WorkingHours p={p} /></section>
+        <section id="portfolio" className="scroll-mt-28 pt-7"><SectionTitle>Portfolio</SectionTitle>
+          {images.length === 0 ? <EmptyNote>No work photos yet.</EmptyNote> : (
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">{images.map((it, i) => (
               <li key={it.id}><button type="button" onClick={() => setLight(i)} className="block aspect-square w-full overflow-hidden rounded-lg border border-line" aria-label={`Open ${it.title ?? `image ${i + 1}`}`}><img src={it.url} alt={it.title ?? ''} loading="lazy" className="h-full w-full object-cover" /></button></li>))}
             </ul>)}
         </section>
-        <section id="reviews" className="scroll-mt-32 pt-8"><SectionTitle>Reviews</SectionTitle>{reviewSlot}<Reviews p={p} /></section>
+        <section id="reviews" className="scroll-mt-28 pt-7"><SectionTitle>Reviews</SectionTitle>{reviewSlot}<Reviews p={p} /></section>
         <p className="mt-8 flex items-center gap-2 text-xs text-muted"><MessageCircle className="h-4 w-4" aria-hidden />Chat in the app, or show the phone number to call directly.</p>
       </div>
       <Lightbox items={images} index={light} onIndex={setLight} onClose={() => setLight(null)} />

@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, MapPin, Search } from 'lucide-react-native';
+import { Briefcase, ChevronDown, ChevronRight, MapPin, Search, Zap } from 'lucide-react-native';
 import type { ProviderCard as PC } from '@help/types';
 import { BellButton, QueryBoundary, Screen, Section } from '@/components/Screen';
 import { Logo } from '@/components/Logo';
@@ -75,6 +75,28 @@ export default function Home() {
           <T v="label" weight={600}>Search for any service</T>
           <T v="caption">Electrician, tutor, photographer{'…'}</T>
         </View>
+      </Pressable>
+      <Pressable
+        onPress={() => router.push('/live/new')} accessibilityRole="button" accessibilityLabel="Request help now"
+        style={[{ minHeight: 56, borderRadius: 16, backgroundColor: colors.navy, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 }]}
+      >
+        <Zap size={20} color="#fff" />
+        <View style={{ flex: 1 }}>
+          <T v="label" weight={600} color="#fff">Need help right now?</T>
+          <T v="caption" color="#CBD5E1">Alert available pros near you instantly</T>
+        </View>
+        <ChevronRight size={20} color="#fff" />
+      </Pressable>
+      <Pressable
+        onPress={() => router.push('/jobs')} accessibilityRole="button" accessibilityLabel="Browse jobs near you"
+        style={[{ minHeight: 56, borderRadius: 16, backgroundColor: colors.tealTint, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 }]}
+      >
+        <Briefcase size={20} color={colors.teal700} />
+        <View style={{ flex: 1 }}>
+          <T v="label" weight={600} color={colors.teal800}>Looking for work?</T>
+          <T v="caption" color={colors.teal800}>Browse jobs posted nearby</T>
+        </View>
+        <ChevronRight size={20} color={colors.teal700} />
       </Pressable>
       <GroupGrid />
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, BarChart3, Bookmark, CreditCard, Eye, MessageSquare, Phone } from 'lucide-react';
+import { AlertTriangle, BarChart3, Bookmark, ChevronRight, CreditCard, Eye, MessageSquare, Phone, Zap } from 'lucide-react';
 import type { SubscriptionDto } from '@help/types';
 import { useApi } from '../../lib/api';
 import { formatDate } from '../../lib/format';
@@ -55,6 +55,11 @@ export default function Dashboard() {
                 <div key={label as string} className="card p-4"><span className="text-teal">{icon}</span><dd className="mt-2 text-2xl font-bold text-navy">{value as number}</dd><dt className="text-xs text-subtle">{label as string}</dt></div>
               ))}
             </dl>
+            <Link to="/pro/live" className="flex items-center gap-3 rounded-xl border border-line bg-navy p-4 text-white">
+              <Zap className="h-5 w-5 flex-none" aria-hidden />
+              <span className="flex-1"><span className="block font-semibold">Live requests</span><span className="text-sm text-white/70">Customers who need help right now</span></span>
+              <ChevronRight className="h-5 w-5" aria-hidden />
+            </Link>
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <Link to="/pro/insights" className="inline-flex items-center gap-1.5 font-semibold"><BarChart3 className="h-4 w-4" aria-hidden />See insights</Link>
               <Link to="/pro/subscription" className="inline-flex items-center gap-1.5 font-semibold"><CreditCard className="h-4 w-4" aria-hidden />Subscription and billing</Link>

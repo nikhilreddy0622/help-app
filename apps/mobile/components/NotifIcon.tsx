@@ -1,16 +1,16 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Activity, CreditCard, Megaphone, MessageCircle, Star, UserCircle } from 'lucide-react-native';
+import { Activity, CreditCard, Megaphone, MessageCircle, Star, UserCircle, Zap } from 'lucide-react-native';
 import type { NotificationCategory, NotificationDto } from '@help/types';
 import { colors } from '@/lib/theme';
 import { Avatar } from './ui/Avatar';
 
 export const CATEGORY_LABEL: Record<NotificationCategory, string> = {
-  STATUS: 'Status', MESSAGES: 'Messages', REVIEWS: 'Reviews', PAYMENTS: 'Payments', ACCOUNT: 'Account', PROMOTIONS: 'Offers',
+  STATUS: 'Status', MESSAGES: 'Messages', REVIEWS: 'Reviews', PAYMENTS: 'Payments', ACCOUNT: 'Account', PROMOTIONS: 'Offers', LIVE_REQUESTS: 'Live requests',
 };
 
 export function CategoryIcon({ category, size = 20, color = colors.teal }: { category: NotificationCategory; size?: number; color?: string }) {
-  const P = { STATUS: Activity, MESSAGES: MessageCircle, REVIEWS: Star, PAYMENTS: CreditCard, ACCOUNT: UserCircle, PROMOTIONS: Megaphone }[category];
+  const P = { STATUS: Activity, MESSAGES: MessageCircle, REVIEWS: Star, PAYMENTS: CreditCard, ACCOUNT: UserCircle, PROMOTIONS: Megaphone, LIVE_REQUESTS: Zap }[category];
   return <P size={size} color={color} />;
 }
 

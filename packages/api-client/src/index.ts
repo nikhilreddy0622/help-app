@@ -7,12 +7,13 @@ import type {
   ApiResponse, AuthTokens, Category, ContactSettings, ConversationDto, ProviderInsights, CheckoutSession, Me, MessageDto, NotificationCategory, NotificationDto,
   NotificationPreferences, PageMeta, RealtimeEvent, SupportMessageDto, SupportTicketDetail, SupportTicketDto,
   PaymentDto, PortfolioItem, ProviderCard, ProviderDashboard, ProviderPublicProfile, ReviewDto, ServiceOffering,
-  SubscriptionDto, SubscriptionPlanDto,
+  SubscriptionDto, SubscriptionPlanDto, JobCard, JobDetail, MyJobPosting,
+  LiveRequestDto, IncomingLiveRequest, LiveRequestSettings,
 } from '@help/types';
 import type {
   AvailabilityInput, CategoryInput, ContactSettingsInput, CreateReportInput, SetStatusInput, CreateReviewInput,
   DiscoverySearchInput, PlanInput, PortfolioItemInput, ProviderBasicsInput, ProviderLocationInput, ServiceOfferingInput,
-  UpdateMeInput,
+  UpdateMeInput, JobPostingInput, JobSearchInput, CreateLiveRequestInput, LiveRespondInput, LiveRequestSettingsInput,
 } from '@help/validation';
 
 export class ApiError extends Error {
@@ -143,6 +144,32 @@ export function createApiClient(opts: ClientOptions) {
       search: (q: Partial<DiscoverySearchInput> & { lat: number; lng: number }) => paged<ProviderCard>('/discovery/search', q as Query),
       home: (q: { lat: number; lng: number }) => get<HomeFeed>('/discovery/home', q),
       reverseGeocode: (q: { lat: number; lng: number }) => get<ReverseGeocodeResult>('/discovery/reverse-geocode', q),
+    },
+    // Job board: provider hiring posts. The app's role ends at the phone reveal — no applications or chat.
+    jobs: {
+      search: (q: Partial<JobSearchInput> & { lat: number; lng: number }) => paged<JobCard>('/jobs', q as Query),
+      get: (id: string) => get<JobDetail>(`/jobs/${id}`),
+      revealPhone: (id: string) => post<{ phone: string }>(`/jobs/${id}/reveal-phone`, {}),
+      mine: () => get<MyJobPosting[]>('/jobs/me'),
+      create: (b: JobPostingInput) => post<MyJobPosting>('/jobs/me', b),
+      update: (id: string, b: Partial<JobPostingInput>) => patch<MyJobPosting>(`/jobs/me/${id}`, b),
+      setStatus: (id: string, status: 'OPEN' | 'PAUSED' | 'CLOSED') => put<MyJobPosting>(`/jobs/me/${id}/status`, { status }),
+      remove: (id: string) => del<void>(`/jobs/me/${id}`),
+    },
+    // Live "Request now": on-demand broadcast. The app connects the two; the job stays outside.
+    liveRequests: {
+      // customer
+      create: (b: CreateLiveRequestInput) => post<LiveRequestDto>('/live-requests', b),
+      mine: () => get<LiveRequestDto | null>('/live-requests/mine'),
+      get: (id: string) => get<LiveRequestDto>(`/live-requests/${id}`),
+      cancel: (id: string) => post<LiveRequestDto>(`/live-requests/${id}/cancel`, {}),
+      connect: (id: string, providerId: string) => post<{ phone: string | null; conversationId: string | null }>(`/live-requests/${id}/connect/${providerId}`, {}),
+      // provider
+      incoming: (q?: { lat?: number; lng?: number }) => get<IncomingLiveRequest[]>('/live-requests/incoming', q as Query),
+      respond: (id: string, b: LiveRespondInput) => post<IncomingLiveRequest>(`/live-requests/${id}/respond`, b),
+      withdraw: (id: string) => post<IncomingLiveRequest>(`/live-requests/${id}/withdraw`, {}),
+      settings: () => get<LiveRequestSettings>('/live-requests/settings'),
+      setSettings: (b: LiveRequestSettingsInput) => put<LiveRequestSettings>('/live-requests/settings', b),
     },
     providers: {
       bySlug: (slug: string) => get<ProviderPublicProfile | { redirectTo: string }>(`/providers/${encodeURIComponent(slug)}`),

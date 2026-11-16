@@ -1,4 +1,4 @@
-import { Activity, CreditCard, MessageSquare, Megaphone, Star, UserCog, type LucideIcon } from 'lucide-react';
+import { Activity, CreditCard, MessageSquare, Megaphone, Star, UserCog, Zap, type LucideIcon } from 'lucide-react';
 import type { NotificationCategory, NotificationDto } from '@help/types';
 
 export const CATEGORY_META: Record<NotificationCategory, { label: string; icon: LucideIcon }> = {
@@ -8,6 +8,7 @@ export const CATEGORY_META: Record<NotificationCategory, { label: string; icon: 
   PAYMENTS: { label: 'Payments', icon: CreditCard },
   ACCOUNT: { label: 'Account', icon: UserCog },
   PROMOTIONS: { label: 'Offers', icon: Megaphone },
+  LIVE_REQUESTS: { label: 'Live requests', icon: Zap },
 };
 export const CATEGORIES = Object.keys(CATEGORY_META) as NotificationCategory[];
 

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Activity, ArrowRight, MessageSquare, Scale, Search, ShieldCheck, Star, Handshake, UserPlus, MapPin, Wallet } from 'lucide-react';
+import { Activity, ArrowRight, MessageSquare, Scale, Search, ShieldCheck, Star, Handshake, UserPlus, MapPin, Wallet, Zap } from 'lucide-react';
 import { useApi } from '../lib/api';
 import { categoriesQuery } from '../lib/queries';
 import { useUserLocation } from '../state/LocationContext';
@@ -60,6 +60,10 @@ export default function Landing() {
             <div className="flex items-center gap-2 md:w-64 md:border-l md:border-line md:pl-3"><MapPin className="hidden h-5 w-5 flex-none text-teal md:block" aria-hidden /><LocationPicker className="flex-1" /></div>
             <Button type="submit" size="lg" className="rounded-[14px]">Search</Button>
           </form>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link to="/live/new" className="inline-flex items-center gap-2 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-white"><Zap className="h-4 w-4" aria-hidden />Need help right now?</Link>
+            <Link to="/search" className="inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm font-semibold text-navy">Browse all services<ArrowRight className="h-4 w-4" aria-hidden /></Link>
+          </div>
         </div>
       </section>
 

@@ -39,23 +39,24 @@ model User {
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime?
 
-  identities      AuthIdentity[]
-  sessions        Session[]
-  provider        ProviderProfile?
-  conversations   Conversation[]      @relation("CustomerConversations")
-  providerViews   ProviderView[]
-  messages        Message[]
-  reviews         Review[]
-  saved           SavedProfessional[]
-  notifications   Notification[]
-  pushTokens      PushToken[]
-  reports         Report[]            @relation("Reporter")
-  blocks          Block[]             @relation("Blocker")
-  blockedBy       Block[]             @relation("Blocked")
-  recentSearches  RecentSearch[]
-  consents        Consent[]
+  identities             AuthIdentity[]
+  sessions               Session[]
+  provider               ProviderProfile?
+  conversations          Conversation[]          @relation("CustomerConversations")
+  providerViews          ProviderView[]
+  messages               Message[]
+  reviews                Review[]
+  saved                  SavedProfessional[]
+  notifications          Notification[]
+  pushTokens             PushToken[]
+  reports                Report[]                @relation("Reporter")
+  blocks                 Block[]                 @relation("Blocker")
+  blockedBy              Block[]                 @relation("Blocked")
+  recentSearches         RecentSearch[]
+  consents               Consent[]
   notificationPreference NotificationPreference?
-  supportTickets  SupportTicket[]
+  supportTickets         SupportTicket[]
+  liveRequests           LiveRequest[]
 }
 
 enum IdentityProvider {
@@ -125,19 +126,23 @@ model Consent {
 // ============ catalogue ============
 
 model Category {
-  id        String     @id @default(cuid())
+  id        String            @id @default(cuid())
   name      String
-  slug      String     @unique
+  slug      String            @unique
   icon      String?
   parentId  String?
-  isActive  Boolean    @default(true)
-  sortOrder Int        @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
-  children  Category[] @relation("CategoryTree")
+  isActive  Boolean           @default(true)
+  sortOrder Int               @default(0)
+  /// Curated: only categories flagged here appear in on-demand "Request now".
+  supportsLiveRequest Boolean @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  parent    Category?         @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[]        @relation("CategoryTree")
   providers ProviderProfile[]
   services  ServiceOffering[]
+  jobs      JobPosting[]
+  liveRequests LiveRequest[]
 }
 
 model Skill {
@@ -168,58 +173,61 @@ enum ServiceMode {
 }
 
 model ProviderProfile {
-  id                  String         @id @default(cuid())
-  userId              String         @unique
-  slug                String         @unique
-  status              ProviderStatus @default(DRAFT)
+  id                    String         @id @default(cuid())
+  userId                String         @unique
+  slug                  String         @unique
+  status                ProviderStatus @default(DRAFT)
   /// Denormalised: PUBLISHED && entitled subscription. Recomputed by subscription + publish flows.
-  isDiscoverable      Boolean        @default(false)
-  displayName         String
-  headline            String?
-  bio                 String?
-  avatarUrl           String?
-  coverUrl            String?
-  primaryCategoryId   String?
-  experienceYears     Int            @default(0)
-  languages           String[]       @default([])
-  qualifications      String[]       @default([])
+  isDiscoverable        Boolean        @default(false)
+  displayName           String
+  headline              String?
+  bio                   String?
+  avatarUrl             String?
+  coverUrl              String?
+  primaryCategoryId     String?
+  experienceYears       Int            @default(0)
+  languages             String[]       @default([])
+  qualifications        String[]       @default([])
   // Location: public shows locality only; lat/lng are approximate service centre, never returned raw.
-  city                String?
-  pinCode             String?
-  locality            String?
-  lat                 Float?
-  lng                 Float?
-  serviceRadiusKm     Float          @default(10)
-  serviceMode         ServiceMode    @default(ONSITE)
-  areasServed         String[]       @default([])
+  city                  String?
+  pinCode               String?
+  locality              String?
+  lat                   Float?
+  lng                   Float?
+  serviceRadiusKm       Float          @default(10)
+  serviceMode           ServiceMode    @default(ONSITE)
+  areasServed           String[]       @default([])
   // Availability
-  timezone            String         @default("Asia/Kolkata")
-  appointmentOnly     Boolean        @default(false)
-  presenceStatus      PresenceStatus @default(AVAILABLE)
-  statusMessage       String?
-  statusUntil         DateTime?
-  statusUpdatedAt     DateTime?
+  timezone              String         @default("Asia/Kolkata")
+  appointmentOnly       Boolean        @default(false)
+  presenceStatus        PresenceStatus @default(AVAILABLE)
+  statusMessage         String?
+  statusUntil           DateTime?
+  statusUpdatedAt       DateTime?
   /// Provider-hidden profile (keeps subscription, data, reviews).
-  isPaused            Boolean        @default(false)
-  showPhone           Boolean        @default(true)
-  autoReplyEnabled    Boolean        @default(true)
-  autoReplyText       String?
-  quickReplies        String[]       @default([])
+  isPaused              Boolean        @default(false)
+  showPhone             Boolean        @default(true)
+  autoReplyEnabled      Boolean        @default(true)
+  autoReplyText         String?
+  quickReplies          String[]       @default([])
+  acceptsLiveRequests   Boolean        @default(true)
+  quietHoursStart       Int?
+  quietHoursEnd         Int?
   // Reputation (denormalised, updated transactionally on review changes)
-  ratingAvg           Float?
-  ratingCount         Int            @default(0)
-  responseMinutes     Int?
-  completeness        Float          @default(0)
-  verificationLevel   Int            @default(0)
-  mobileVerified      Boolean        @default(false)
-  identityVerified    Boolean        @default(false)
-  qualificationVerified Boolean      @default(false)
-  sponsoredUntil      DateTime?
-  hiddenByAdmin       Boolean        @default(false)
-  publishedAt         DateTime?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  deletedAt           DateTime?
+  ratingAvg             Float?
+  ratingCount           Int            @default(0)
+  responseMinutes       Int?
+  completeness          Float          @default(0)
+  verificationLevel     Int            @default(0)
+  mobileVerified        Boolean        @default(false)
+  identityVerified      Boolean        @default(false)
+  qualificationVerified Boolean        @default(false)
+  sponsoredUntil        DateTime?
+  hiddenByAdmin         Boolean        @default(false)
+  publishedAt           DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  deletedAt             DateTime?
 
   user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   primaryCategory Category?               @relation(fields: [primaryCategoryId], references: [id])
@@ -236,6 +244,8 @@ model ProviderProfile {
   savedBy         SavedProfessional[]
   slugHistory     SlugHistory[]
   stats           ProviderDailyStat[]
+  jobPostings     JobPosting[]
+  liveResponses   LiveRequestResponse[]
 
   @@index([isDiscoverable, primaryCategoryId])
   @@index([status])
@@ -403,37 +413,37 @@ enum SubscriptionStatus {
 }
 
 model Subscription {
-  id                     String             @id @default(cuid())
+  id                     String              @id @default(cuid())
   providerId             String
   planId                 String
-  status                 SubscriptionStatus @default(INCOMPLETE)
-  razorpaySubscriptionId String?            @unique
+  status                 SubscriptionStatus  @default(INCOMPLETE)
+  razorpaySubscriptionId String?             @unique
   currentPeriodStart     DateTime?
   currentPeriodEnd       DateTime?
   pastDueSince           DateTime?
-  cancelAtPeriodEnd      Boolean            @default(false)
+  cancelAtPeriodEnd      Boolean             @default(false)
   cancelledAt            DateTime?
   lastEventAt            DateTime?
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
-  provider               ProviderProfile    @relation(fields: [providerId], references: [id])
-  plan                   SubscriptionPlan   @relation(fields: [planId], references: [id])
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  provider               ProviderProfile     @relation(fields: [providerId], references: [id])
+  plan                   SubscriptionPlan    @relation(fields: [planId], references: [id])
   payments               Payment[]
   history                SubscriptionEvent[]
+  // Partial unique index "one live subscription per provider" lives in migration SQL.
 
   @@index([providerId, status])
-  // Partial unique index "one live subscription per provider" lives in migration SQL.
 }
 
 model SubscriptionEvent {
-  id             String             @id @default(cuid())
+  id             String              @id @default(cuid())
   subscriptionId String
   fromStatus     SubscriptionStatus?
   toStatus       SubscriptionStatus
   source         String // webhook | verify | job | admin
   eventId        String?
-  createdAt      DateTime           @default(now())
-  subscription   Subscription       @relation(fields: [subscriptionId], references: [id])
+  createdAt      DateTime            @default(now())
+  subscription   Subscription        @relation(fields: [subscriptionId], references: [id])
 
   @@index([subscriptionId, createdAt])
 }
@@ -520,6 +530,108 @@ enum ContactKind {
   PHONE_REVEALED
   SAVED
   PROFILE_VIEW
+  JOB_CONTACT_REVEALED
+  LIVE_REQUEST_CONNECTED
+}
+
+enum LiveRequestStatus {
+  OPEN
+  CONNECTED
+  EXPIRED
+  CANCELLED
+}
+
+enum LiveResponseStatus {
+  INTERESTED
+  WITHDRAWN
+}
+
+/// On-demand "Request now": a customer broadcasts an immediate need to eligible, available
+/// providers nearby. The app only connects the two — the job itself happens outside, untracked.
+/// Phase 3: scheduledFor != null means "needed later" rather than right now.
+model LiveRequest {
+  id                 String            @id @default(cuid())
+  customerId         String
+  categoryId         String
+  // Exact point stays server-side; providers see an approximate area until the customer connects.
+  lat                Float
+  lng                Float
+  note               String?
+  urgent             Boolean           @default(false)
+  status             LiveRequestStatus @default(OPEN)
+  scheduledFor       DateTime?         // null = now (Phase 3: future = scheduled)
+  expiresAt          DateTime
+  rebroadcastedAt    DateTime?         // Phase 2: widened/re-sent when nobody responded
+  connectedProviderId String?
+  connectedAt        DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  customer  User                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  category  Category              @relation(fields: [categoryId], references: [id])
+  responses LiveRequestResponse[]
+
+  @@index([status, categoryId, expiresAt])
+  @@index([customerId, status])
+}
+
+model LiveRequestResponse {
+  id         String             @id @default(cuid())
+  requestId  String
+  providerId String
+  status     LiveResponseStatus @default(INTERESTED)
+  etaMinutes Int?               // Phase 2: provider's rough ETA
+  message    String?
+  createdAt  DateTime           @default(now())
+
+  request  LiveRequest     @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, providerId])
+  @@index([providerId, status])
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  GIG
+}
+
+enum JobStatus {
+  OPEN
+  PAUSED
+  CLOSED
+}
+
+/// A hiring post by a provider. Scope is intentionally OLX-lite: searchable and categorised,
+/// but the app's involvement stops at the phone reveal — no applications, no resume upload,
+/// no in-app chat for jobs. Everything after the number is outside the app, by design.
+model JobPosting {
+  id          String    @id @default(cuid())
+  providerId  String
+  title       String
+  description String
+  jobType     JobType   @default(FULL_TIME)
+  categoryId  String?
+  payMinPaise Int?
+  payMaxPaise Int?
+  payUnit     String? // e.g. "month", "day" — free text, shown as-is
+  city        String?
+  locality    String?
+  lat         Float?
+  lng         Float?
+  openings    Int       @default(1)
+  status      JobStatus @default(OPEN)
+  closesAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category Category?       @relation(fields: [categoryId], references: [id])
+
+  @@index([status, categoryId, createdAt])
+  @@index([providerId, status])
 }
 
 model ContactEvent {
@@ -640,6 +752,7 @@ enum NotificationCategory {
   PAYMENTS
   ACCOUNT
   PROMOTIONS
+  LIVE_REQUESTS
 }
 
 model Notification {
@@ -688,17 +801,17 @@ enum EmailStatus {
 }
 
 model EmailLog {
-  id          String      @id @default(cuid())
+  id        String      @id @default(cuid())
   /// Dedupe key e.g. "ticket-reply:<messageId>" — prevents duplicate sends.
-  dedupeKey   String      @unique
-  to          String
-  template    String
-  status      EmailStatus @default(QUEUED)
-  attempts    Int         @default(0)
-  lastError   String?
-  vars        Json?
-  sentAt      DateTime?
-  createdAt   DateTime    @default(now())
+  dedupeKey String      @unique
+  to        String
+  template  String
+  status    EmailStatus @default(QUEUED)
+  attempts  Int         @default(0)
+  lastError String?
+  vars      Json?
+  sentAt    DateTime?
+  createdAt DateTime    @default(now())
 }
 
 // ============ admin ============
@@ -712,17 +825,17 @@ enum AdminRole {
 }
 
 model AdminUser {
-  id           String     @id @default(cuid())
-  email        String     @unique
-  name         String
-  passwordHash String
-  role         AdminRole
-  isActive     Boolean    @default(true)
-  lastLoginAt  DateTime?
+  id                String     @id @default(cuid())
+  email             String     @unique
+  name              String
+  passwordHash      String
+  role              AdminRole
+  isActive          Boolean    @default(true)
+  lastLoginAt       DateTime?
   /// Tokens signed before the latest password change are rejected.
   passwordChangedAt DateTime?
-  createdAt    DateTime   @default(now())
-  auditLogs    AuditLog[]
+  createdAt         DateTime   @default(now())
+  auditLogs         AuditLog[]
 }
 
 model AdminPasswordReset {
@@ -744,18 +857,18 @@ enum TicketStatus {
 }
 
 model SupportTicket {
-  id            String        @id @default(cuid())
-  number        Int           @unique @default(autoincrement())
-  userId        String
-  category      String
-  subject       String
-  status        TicketStatus  @default(OPEN)
-  providerId    String?
-  lastMessageAt DateTime      @default(now())
+  id             String           @id @default(cuid())
+  number         Int              @unique @default(autoincrement())
+  userId         String
+  category       String
+  subject        String
+  status         TicketStatus     @default(OPEN)
+  providerId     String?
+  lastMessageAt  DateTime         @default(now())
   userLastReadAt DateTime?
-  createdAt     DateTime      @default(now())
-  user          User          @relation(fields: [userId], references: [id])
-  messages      SupportMessage[]
+  createdAt      DateTime         @default(now())
+  user           User             @relation(fields: [userId], references: [id])
+  messages       SupportMessage[]
 
   @@index([userId, lastMessageAt])
   @@index([status, lastMessageAt])

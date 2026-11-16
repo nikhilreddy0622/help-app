@@ -195,12 +195,14 @@ export const CreateReportSchema = z.object({
 });
 
 // ---------- notifications ----------
-export const NotificationCategorySchema = z.enum(['STATUS', 'MESSAGES', 'REVIEWS', 'PAYMENTS', 'ACCOUNT', 'PROMOTIONS']);
+export const NotificationCategorySchema = z.enum(['STATUS', 'MESSAGES', 'REVIEWS', 'PAYMENTS', 'ACCOUNT', 'PROMOTIONS', 'LIVE_REQUESTS']);
 const channelPref = z.object({ push: z.boolean(), email: z.boolean() });
 export const NotificationPreferencesSchema = z.object({
   channels: z.object({
     STATUS: channelPref, MESSAGES: channelPref, REVIEWS: channelPref,
     PAYMENTS: channelPref, ACCOUNT: channelPref, PROMOTIONS: channelPref,
+    // Optional for backward compatibility with clients that predate live requests; the server default fills it.
+    LIVE_REQUESTS: channelPref.optional(),
   }),
   quietHours: z.object({
     enabled: z.boolean(),
@@ -255,6 +257,60 @@ export const AdminDecisionSchema = z.object({
 });
 export const AdminUserStatusSchema = z.object({ status: z.enum(['ACTIVE', 'SUSPENDED']), reason: z.string().max(500).optional() });
 
+// ---------- jobs (provider hiring posts; phone-reveal only, no in-app applications) ----------
+export const JobType = z.enum(['FULL_TIME', 'PART_TIME', 'GIG']);
+export const JobStatus = z.enum(['OPEN', 'PAUSED', 'CLOSED']);
+const payRangeOk = (v: { payMinPaise?: number; payMaxPaise?: number }) => !(v.payMinPaise != null && v.payMaxPaise != null) || v.payMinPaise <= v.payMaxPaise;
+const payRangeRefinement = { message: 'Minimum pay must not exceed maximum pay', path: ['payMinPaise'] };
+const jobPostingShape = {
+  title: z.string().trim().min(4).max(100),
+  description: z.string().trim().min(10).max(2000),
+  jobType: JobType.default('FULL_TIME'),
+  categoryId: id.optional(),
+  payMinPaise: z.coerce.number().int().min(0).optional(),
+  payMaxPaise: z.coerce.number().int().min(0).optional(),
+  payUnit: z.string().trim().max(20).optional(),
+  city: z.string().trim().max(60).optional(),
+  locality: z.string().trim().max(80).optional(),
+  lat: lat.optional(),
+  lng: lng.optional(),
+  openings: z.coerce.number().int().min(1).max(999).default(1),
+  closesAt: z.coerce.date().optional(),
+};
+export const JobPostingSchema = z.object(jobPostingShape).refine(payRangeOk, payRangeRefinement);
+/** Same fields, all optional, for partial updates (PATCH) — kept separate since .refine() drops .partial(). */
+export const JobPostingUpdateSchema = z.object(jobPostingShape).partial().refine(payRangeOk, payRangeRefinement);
+export const JobStatusUpdateSchema = z.object({ status: JobStatus });
+
+// ---------- live requests ("Request now": on-demand broadcast; app only connects) ----------
+export const CreateLiveRequestSchema = z.object({
+  categoryId: id,
+  lat,
+  lng,
+  note: z.string().trim().max(240).optional(),
+  urgent: z.coerce.boolean().optional().default(false),
+  /** null/omitted = needed now; a future time = scheduled (Phase 3). */
+  scheduledFor: z.coerce.date().optional(),
+});
+export const LiveRespondSchema = z.object({
+  etaMinutes: z.coerce.number().int().min(0).max(240).optional(),
+  message: z.string().trim().max(240).optional(),
+});
+export const LiveRequestSettingsSchema = z.object({
+  acceptsLiveRequests: z.boolean().optional(),
+  quietHoursStart: z.number().int().min(0).max(1439).nullable().optional(),
+  quietHoursEnd: z.number().int().min(0).max(1439).nullable().optional(),
+});
+export const JobSearchSchema = cursorQuery.extend({
+  q: z.string().trim().max(100).optional(),
+  categoryId: id.optional(),
+  city: z.string().trim().max(60).optional(),
+  jobType: JobType.optional(),
+  lat: lat.optional(),
+  lng: lng.optional(),
+  radiusKm: z.coerce.number().min(0.5).max(100).default(25),
+});
+
 // Inferred input types
 export type OtpVerifyInput = z.infer<typeof OtpVerifySchema>;
 export type GoogleLoginInput = z.infer<typeof GoogleLoginSchema>;
@@ -271,4 +327,9 @@ export type CreateReviewInput = z.infer<typeof CreateReviewSchema>;
 export type CreateReportInput = z.infer<typeof CreateReportSchema>;
 export type PlanInput = z.infer<typeof PlanSchema>;
 export type CategoryInput = z.infer<typeof CategorySchema>;
+export type JobPostingInput = z.infer<typeof JobPostingSchema>;
+export type JobSearchInput = z.infer<typeof JobSearchSchema>;
+export type CreateLiveRequestInput = z.infer<typeof CreateLiveRequestSchema>;
+export type LiveRespondInput = z.infer<typeof LiveRespondSchema>;
+export type LiveRequestSettingsInput = z.infer<typeof LiveRequestSettingsSchema>;
 export { z };

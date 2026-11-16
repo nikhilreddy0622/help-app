@@ -58,3 +58,14 @@ export function distanceLabel(km: number | null): string {
 }
 
 export const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/** "₹800–1,200/day", "₹500/day", "from ₹500/day", or "Pay on ask". */
+export function jobPayLabel(min: number | null, max: number | null, unit: string | null): string {
+  const per = unit ? `/${unit}` : '';
+  if (min == null && max == null) return 'Pay on ask';
+  if (min != null && max != null && min !== max) return `${formatINR(min)}–${formatINR(max).replace('₹', '')}${per}`;
+  const one = (min ?? max)!;
+  return `${formatINR(one)}${per}`;
+}
+
+export const JOB_TYPE_LABEL: Record<string, string> = { FULL_TIME: 'Full-time', PART_TIME: 'Part-time', GIG: 'Gig / one-off' };

@@ -23,7 +23,7 @@ export interface Me {
   linked: { google: boolean; phone: boolean; email: boolean };
 }
 
-export interface Category { id: string; name: string; slug: string; icon: string | null; /** null = top-level group (Home Services, Education…); otherwise the group it belongs to. */ parentId: string | null; providerCount?: number }
+export interface Category { id: string; name: string; slug: string; icon: string | null; /** null = top-level group (Home Services, Education…); otherwise the group it belongs to. */ parentId: string | null; providerCount?: number; supportsLiveRequest?: boolean }
 
 export interface VerificationBadges { mobile: boolean; identity: boolean; qualification: boolean }
 
@@ -135,7 +135,7 @@ export interface ConversationDto {
 
 export interface MessageDto { id: string; conversationId: string; senderId: string; body: string; /** true for automatic Busy/Away replies */ auto: boolean; createdAt: string; readAt: string | null }
 
-export type NotificationCategory = 'STATUS' | 'MESSAGES' | 'REVIEWS' | 'PAYMENTS' | 'ACCOUNT' | 'PROMOTIONS';
+export type NotificationCategory = 'STATUS' | 'MESSAGES' | 'REVIEWS' | 'PAYMENTS' | 'ACCOUNT' | 'PROMOTIONS' | 'LIVE_REQUESTS';
 
 export interface NotificationDto {
   id: string;
@@ -158,8 +158,9 @@ export interface NotificationDto {
 }
 
 export interface NotificationPreferences {
-  /** Per category, per channel. In-app records are always kept; these control push & email. */
-  channels: Record<NotificationCategory, { push: boolean; email: boolean }>;
+  /** Per category, per channel. In-app records are always kept; these control push & email.
+   *  LIVE_REQUESTS is optional for backward compatibility; the server fills its default. */
+  channels: Partial<Record<NotificationCategory, { push: boolean; email: boolean }>> & Record<Exclude<NotificationCategory, 'LIVE_REQUESTS'>, { push: boolean; email: boolean }>;
   quietHours: { enabled: boolean; startMinute: number; endMinute: number; timezone: string };
 }
 
@@ -170,6 +171,10 @@ export type RealtimeEvent =
   | { type: 'message.created'; conversationId: string; message: MessageDto }
   | { type: 'conversation.read'; conversationId: string; readerId: string }
   | { type: 'support.updated'; ticketId: string }
+  // Live "Request now": a new request reaches eligible providers; a new responder reaches the customer.
+  | { type: 'live_request.created'; requestId: string; categoryName: string; urgent: boolean }
+  | { type: 'live_request.responder_added'; requestId: string; responderCount: number }
+  | { type: 'live_request.closed'; requestId: string; status: LiveRequestStatus }
   | { type: 'ping' };
 
 export type TicketStatus = 'OPEN' | 'WAITING_ON_USER' | 'RESOLVED' | 'CLOSED';
@@ -214,3 +219,88 @@ export interface ProviderInsights {
 }
 
 export interface ContactSettings { showPhone: boolean; autoReplyEnabled: boolean; autoReplyText: string | null }
+
+// ---------- jobs ----------
+export type JobType = 'FULL_TIME' | 'PART_TIME' | 'GIG';
+export type JobStatus = 'OPEN' | 'PAUSED' | 'CLOSED';
+
+/** A hiring post shown in job search. Phone reveal is the app's full involvement — no applications tracked. */
+export interface JobCard {
+  id: string;
+  title: string;
+  jobType: JobType;
+  categoryName: string | null;
+  payMinPaise: number | null;
+  payMaxPaise: number | null;
+  payUnit: string | null;
+  city: string | null;
+  locality: string | null;
+  distanceKm: number | null;
+  openings: number;
+  createdAt: string;
+  providerId: string;
+  providerName: string;
+  providerAvatarUrl: string | null;
+}
+
+export interface JobDetail extends JobCard {
+  description: string;
+  status: JobStatus;
+  closesAt: string | null;
+}
+
+/** Provider's own posting (management view). */
+export interface MyJobPosting extends JobDetail {
+  updatedAt: string;
+}
+
+// ---------- live requests ("Request now") ----------
+export type LiveRequestStatus = 'OPEN' | 'CONNECTED' | 'EXPIRED' | 'CANCELLED';
+
+/** A responder the customer can pick from (provider who raised their hand). */
+export interface LiveResponder {
+  providerId: string;
+  slug: string;
+  displayName: string;
+  avatarUrl: string | null;
+  headline: string;
+  ratingAvg: number | null;
+  ratingCount: number;
+  distanceKm: number | null;
+  etaMinutes: number | null;
+  message: string | null;
+  respondedAt: string;
+  phoneAvailable: boolean;
+}
+
+/** Customer's view of their own request + who has responded. */
+export interface LiveRequestDto {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  note: string | null;
+  urgent: boolean;
+  status: LiveRequestStatus;
+  scheduledFor: string | null;
+  expiresAt: string;
+  createdAt: string;
+  connectedProviderId: string | null;
+  responders: LiveResponder[];
+}
+
+/** What an eligible provider sees in their incoming feed (customer identity stays private until connect). */
+export interface IncomingLiveRequest {
+  id: string;
+  categoryName: string;
+  note: string | null;
+  urgent: boolean;
+  /** Approximate area only — never the exact point. */
+  areaLabel: string | null;
+  distanceKm: number | null;
+  scheduledFor: string | null;
+  expiresAt: string;
+  createdAt: string;
+  myResponse: { etaMinutes: number | null; status: 'INTERESTED' | 'WITHDRAWN' } | null;
+}
+
+export interface LiveRequestSettings { acceptsLiveRequests: boolean; quietHoursStart: number | null; quietHoursEnd: number | null }

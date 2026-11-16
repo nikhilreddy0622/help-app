@@ -4,7 +4,7 @@ import { NotificationPreferencesSchema } from '@help/validation';
 import { Prisma, type Notification, type NotificationCategory } from '@prisma/client';
 import { prisma } from '../../lib/core';
 
-export const CATEGORIES: NotificationCategory[] = ['STATUS', 'MESSAGES', 'REVIEWS', 'PAYMENTS', 'ACCOUNT', 'PROMOTIONS'];
+export const CATEGORIES: NotificationCategory[] = ['STATUS', 'MESSAGES', 'REVIEWS', 'PAYMENTS', 'ACCOUNT', 'PROMOTIONS', 'LIVE_REQUESTS'];
 
 export function defaultPreferences(): NotificationPreferences {
   const channels = Object.fromEntries(

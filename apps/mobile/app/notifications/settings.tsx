@@ -33,8 +33,8 @@ function Editor({ initial }: { initial: NotificationPreferences }) {
         {CATS.map((c, i) => (
           <View key={c} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, minHeight: 52, borderBottomWidth: i < CATS.length - 1 ? 1 : 0, borderBottomColor: colors.divider }}>
             <T style={{ flex: 1 }}>{CATEGORY_LABEL[c]}</T>
-            <View style={{ width: 64, alignItems: 'center' }}><Switch accessibilityLabel={`${CATEGORY_LABEL[c]} push`} value={p.channels[c].push} onValueChange={(v) => setCh(c, 'push', v)} trackColor={{ true: colors.teal700, false: colors.borderStrong }} thumbColor="#fff" /></View>
-            <View style={{ width: 64, alignItems: 'center' }}><Switch accessibilityLabel={`${CATEGORY_LABEL[c]} email`} value={p.channels[c].email} onValueChange={(v) => setCh(c, 'email', v)} trackColor={{ true: colors.teal700, false: colors.borderStrong }} thumbColor="#fff" /></View>
+            <View style={{ width: 64, alignItems: 'center' }}><Switch accessibilityLabel={`${CATEGORY_LABEL[c]} push`} value={p.channels[c]?.push ?? true} onValueChange={(v) => setCh(c, 'push', v)} trackColor={{ true: colors.teal700, false: colors.borderStrong }} thumbColor="#fff" /></View>
+            <View style={{ width: 64, alignItems: 'center' }}><Switch accessibilityLabel={`${CATEGORY_LABEL[c]} email`} value={p.channels[c]?.email ?? true} onValueChange={(v) => setCh(c, 'email', v)} trackColor={{ true: colors.teal700, false: colors.borderStrong }} thumbColor="#fff" /></View>
           </View>
         ))}
       </Card>

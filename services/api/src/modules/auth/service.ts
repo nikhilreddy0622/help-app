@@ -100,8 +100,9 @@ export async function getMe(userId: string): Promise<Me> {
     name: u.name,
     email: u.email,
     phone: u.phone,
-    // Fall back to the provider's profile photo so the header avatar reflects an uploaded DP.
-    avatarUrl: u.avatarUrl ?? u.provider?.avatarUrl ?? null,
+    // Prefer the photo the user explicitly uploaded to their provider profile over an
+    // auto-captured Google photo (which may be stale or fail to load).
+    avatarUrl: u.provider?.avatarUrl ?? u.avatarUrl ?? null,
     preferredLanguage: u.preferredLanguage,
     city: u.city,
     hasProviderProfile: !!u.provider,

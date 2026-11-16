@@ -58,7 +58,8 @@ export async function notifyUser(userId: string, n: NotifyInput): Promise<void> 
     logger.warn({ err: e }, 'realtime emit failed');
   }
 
-  const wantsPush = n.push !== false && prefs.channels[n.category].push && (n.important || !inQuietHours(prefs));
+  const ch = prefs.channels[n.category] ?? { push: true, email: true };
+  const wantsPush = n.push !== false && ch.push && (n.important || !inQuietHours(prefs));
   if (wantsPush) {
     sendPush(userId, {
       title: n.title,
@@ -68,7 +69,7 @@ export async function notifyUser(userId: string, n: NotifyInput): Promise<void> 
     }).catch((e) => logger.warn({ err: e }, 'push failed'));
   }
 
-  if (n.email && (ALWAYS_EMAIL.includes(n.category) || prefs.channels[n.category].email)) {
+  if (n.email && (ALWAYS_EMAIL.includes(n.category) || ch.email)) {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
     if (user?.email) {
       await queueEmail({

@@ -1,12 +1,15 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Award, BadgeCheck, Smartphone, ShieldCheck, Star } from 'lucide-react';
 import type { VerificationBadges } from '@help/types';
 import { initials } from '../../lib/format';
 
 export function Avatar({ name, src, size = 48 }: { name: string; src?: string | null; size?: number }) {
   const s = { width: size, height: size, fontSize: Math.max(12, size / 3) };
-  return src ? (
-    <img src={src} alt="" style={s} className="flex-none rounded-full object-cover" loading="lazy" />
+  const [failed, setFailed] = useState(false);
+  // Reset the error state if the src changes (e.g. after a new upload).
+  useEffect(() => { setFailed(false); }, [src]);
+  return src && !failed ? (
+    <img src={src} alt="" style={s} className="flex-none rounded-full bg-[#E0F2F1] object-cover" loading="lazy" onError={() => setFailed(true)} />
   ) : (
     <span aria-hidden style={s} className="flex flex-none items-center justify-center rounded-full bg-[#E0F2F1] font-bold text-teal-700">{initials(name)}</span>
   );
