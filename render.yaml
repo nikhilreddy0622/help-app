@@ -8,7 +8,7 @@ services:
     runtime: node
     plan: free
     region: singapore
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @help/api build
+    buildCommand: pnpm install --no-frozen-lockfile && pnpm --filter @help/api build
     # migrate deploy is idempotent; runs on each boot so the schema is always current.
     startCommand: pnpm --filter @help/api exec prisma migrate deploy --schema ../../infrastructure/database/schema.prisma && pnpm --filter @help/api start
     healthCheckPath: /health
@@ -67,7 +67,7 @@ services:
     runtime: node
     plan: free
     region: singapore
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @help/web build
+    buildCommand: pnpm install --no-frozen-lockfile && pnpm --filter @help/web build
     startCommand: pnpm --filter @help/web start
     healthCheckPath: /healthz
     envVars:

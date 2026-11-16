@@ -3,6 +3,6 @@
   "framework": null,
   "buildCommand": "pnpm --filter @help/admin exec vite build",
   "outputDirectory": "dist",
-  "installCommand": "pnpm install --frozen-lockfile",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
