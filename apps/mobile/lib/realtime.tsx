@@ -83,14 +83,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         qc.invalidateQueries({ queryKey: ['support'] });
         qc.invalidateQueries({ queryKey: ['ticket', e.ticketId] });
         break;
-      case 'live_request.responder_added':
-      case 'live_request.closed':
-        qc.invalidateQueries({ queryKey: ['live-mine'] });
-        qc.invalidateQueries({ queryKey: ['live-request', e.requestId] });
-        break;
-      case 'live_request.created':
-        qc.invalidateQueries({ queryKey: ['live-incoming'] });
-        break;
       default:
         break;
     }

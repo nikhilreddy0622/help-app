@@ -29,7 +29,6 @@ export default function ProviderSettings() {
           <Row icon={ic(Receipt)} label="Payment history" right={chev} onPress={() => router.push('/payments')} />
           <Row icon={ic(Phone)} label="Contact settings" right={chev} onPress={() => router.push('/contact-settings')} />
           <Row icon={ic(Zap)} label="Quick replies" right={chev} onPress={() => router.push('/quick-replies')} />
-          <Row icon={ic(Radio)} label="Live requests" right={chev} onPress={() => router.push('/live-settings')} />
           <Row icon={ic(Bell)} label="Notifications" right={chev} onPress={() => router.push('/notifications/settings')} />
         </Group>
         <Group>

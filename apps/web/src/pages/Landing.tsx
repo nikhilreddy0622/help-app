@@ -46,8 +46,8 @@ export default function Landing() {
       <Seo title="Find trusted local professionals near you" description="Discover verified electricians, tutors, photographers and more near you. Compare ratings, prices and availability, then chat or call. Free for customers." path="/" />
       <section className="container-page pb-2 pt-10 md:pt-16">
         <div className="mx-auto max-w-3xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Discover services near you</h1>
-          <p className="mt-3 text-base text-subtle md:text-lg">Find trusted professionals and businesses in your area.</p>
+          <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Someone nearby can help with that</h1>
+          <p className="mt-3 text-base text-subtle md:text-lg">Electricians, tutors, cooks, mechanics — real people around you. See their reviews, then message or call them yourself. No commission, no middleman.</p>
           <form onSubmit={submit} className="mt-8 flex flex-col gap-3 rounded-[20px] border border-line bg-white p-3 text-left shadow-md md:flex-row md:items-center" role="search">
             <div className="flex flex-1 items-center gap-3 px-2">
               <Search className="h-6 w-6 flex-none text-teal" aria-hidden />
@@ -61,7 +61,6 @@ export default function Landing() {
             <Button type="submit" size="lg" className="rounded-[14px]">Search</Button>
           </form>
           <div className="mt-3 flex flex-wrap gap-3">
-            <Link to="/live/new" className="inline-flex items-center gap-2 rounded-full bg-navy px-4 py-2 text-sm font-semibold text-white"><Zap className="h-4 w-4" aria-hidden />Need help right now?</Link>
             <Link to="/search" className="inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm font-semibold text-navy">Browse all services<ArrowRight className="h-4 w-4" aria-hidden /></Link>
           </div>
         </div>

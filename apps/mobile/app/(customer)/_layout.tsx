@@ -1,21 +1,22 @@
 import React from 'react';
-import { Heart, Home, MessageCircle, Search, UserRound } from 'lucide-react-native';
+import { Home, Search, Briefcase, UserRound, UserPlus } from 'lucide-react-native';
 import { ModeTabs } from '@/components/TabBar';
-import { useRealtime } from '@/lib/realtime';
+import { useT } from '@/lib/i18n';
 
 export default function CustomerTabs() {
-  const { unread } = useRealtime();
+  const t = useT();
   return (
     <ModeTabs
       mode="customer"
       redirect="/dashboard"
       tabs={[
-        { name: 'index', title: 'Home', icon: (p) => <Home {...p} /> },
-        { name: 'explore', title: 'Explore', icon: (p) => <Search {...p} /> },
-        { name: 'messages', title: 'Messages', icon: (p) => <MessageCircle {...p} />, badge: unread.byCategory.MESSAGES },
-        { name: 'saved', title: 'Saved', icon: (p) => <Heart {...p} /> },
-        { name: 'profile', title: 'Profile', icon: (p) => <UserRound {...p} /> },
+        { name: 'index', title: t('Home'), icon: (p) => <Home {...p} /> },
+        { name: 'explore', title: t('Explore'), icon: (p) => <Search {...p} /> },
+        { name: 'register', title: t('Register'), icon: (p) => <UserPlus {...p} /> },
+        { name: 'jobs', title: t('Jobs'), icon: (p) => <Briefcase {...p} /> },
+        { name: 'profile', title: t('Profile'), icon: (p) => <UserRound {...p} /> },
       ]}
+      hidden={['messages', 'saved']}
     />
   );
 }

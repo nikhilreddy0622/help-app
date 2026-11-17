@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { Briefcase, ChevronDown, ChevronRight, MapPin, Search, Zap } from 'lucide-react-native';
+import { Briefcase, ChevronDown, ChevronRight, MapPin, MessageCircle, Search } from 'lucide-react-native';
 import type { ProviderCard as PC } from '@help/types';
 import { BellButton, QueryBoundary, Screen, Section } from '@/components/Screen';
 import { Logo } from '@/components/Logo';
@@ -12,6 +12,8 @@ import { AvailabilityPill } from '@/components/ui/ProviderCard';
 import { api } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { useLocation } from '@/lib/location';
+import { useRealtime } from '@/lib/realtime';
+import { useT } from '@/lib/i18n';
 import { colors, shadowSm } from '@/lib/theme';
 import { distanceLabel, priceLabel } from '@/lib/format';
 
@@ -42,13 +44,22 @@ export default function Home() {
   const loc = useLocation();
   const q = useQuery({ queryKey: ['home', loc.coords.lat, loc.coords.lng], queryFn: () => api.discovery.home(loc.coords) });
   const { signedIn } = useSession();
+  const { unread } = useRealtime();
+  const t = useT();
+  const unreadMsgs = unread.byCategory.MESSAGES ?? 0;
   const recent = useQuery({ queryKey: ['recently-viewed'], queryFn: () => api.users.recentlyViewed(), enabled: signedIn });
   const openPro = (p: PC) => router.push(`/provider/${p.slug}`);
 
   const header = (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, backgroundColor: colors.bg }}>
       <Logo size={30} />
-      <BellButton />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Pressable onPress={() => router.push('/messages')} accessibilityRole="button" accessibilityLabel={unreadMsgs ? `Messages, ${unreadMsgs} unread` : 'Messages'} hitSlop={8} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+          <MessageCircle size={24} color={colors.navy} />
+          {unreadMsgs > 0 ? <View style={{ position: 'absolute', top: 6, right: 6, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: colors.teal700, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderWidth: 2, borderColor: colors.bg }}><T v="micro" color="#fff" weight={700}>{unreadMsgs > 9 ? '9+' : unreadMsgs}</T></View> : null}
+        </Pressable>
+        <BellButton />
+      </View>
     </View>
   );
   const locRow = (
@@ -63,8 +74,8 @@ export default function Home() {
     <Screen header={header} onRefresh={async () => { await q.refetch(); }} contentStyle={{ padding: 20, gap: 24 }}>
       {locRow}
       <View style={{ gap: 6 }}>
-        <T v="display">Discover services near you</T>
-        <T color={colors.textMuted}>Find trusted professionals and businesses in your area.</T>
+        <T v="display">{t('Discover services near you')}</T>
+        <T color={colors.textMuted}>{t('Find trusted professionals and businesses in your area.')}</T>
       </View>
       <Pressable
         onPress={() => router.push('/explore')} accessibilityRole="search" accessibilityLabel="Search for any service"
@@ -72,20 +83,9 @@ export default function Home() {
       >
         <Search size={22} color={colors.navy} />
         <View style={{ flex: 1 }}>
-          <T v="label" weight={600}>Search for any service</T>
+          <T v="label" weight={600}>{t('Search for any service')}</T>
           <T v="caption">Electrician, tutor, photographer{'…'}</T>
         </View>
-      </Pressable>
-      <Pressable
-        onPress={() => router.push('/live/new')} accessibilityRole="button" accessibilityLabel="Request help now"
-        style={[{ minHeight: 56, borderRadius: 16, backgroundColor: colors.navy, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 }]}
-      >
-        <Zap size={20} color="#fff" />
-        <View style={{ flex: 1 }}>
-          <T v="label" weight={600} color="#fff">Need help right now?</T>
-          <T v="caption" color="#CBD5E1">Alert available pros near you instantly</T>
-        </View>
-        <ChevronRight size={20} color="#fff" />
       </Pressable>
       <Pressable
         onPress={() => router.push('/jobs')} accessibilityRole="button" accessibilityLabel="Browse jobs near you"
@@ -93,8 +93,8 @@ export default function Home() {
       >
         <Briefcase size={20} color={colors.teal700} />
         <View style={{ flex: 1 }}>
-          <T v="label" weight={600} color={colors.teal800}>Looking for work?</T>
-          <T v="caption" color={colors.teal800}>Browse jobs posted nearby</T>
+          <T v="label" weight={600} color={colors.teal800}>{t('Looking for work?')}</T>
+          <T v="caption" color={colors.teal800}>{t('Browse jobs posted nearby')}</T>
         </View>
         <ChevronRight size={20} color={colors.teal700} />
       </Pressable>
@@ -103,7 +103,7 @@ export default function Home() {
       <QueryBoundary q={q} skeleton={<HomeSkeleton />}>
         {(feed) => (
           <>
-            <Section title="Available now nearby" action="See all" onAction={() => router.push({ pathname: '/explore', params: { availableNow: '1' } })}>
+            <Section title={t('Available now nearby')} action="See all" onAction={() => router.push({ pathname: '/explore', params: { availableNow: '1' } })}>
               {feed.availableNow.length === 0 ? (
                 <Card><T color={colors.textMuted}>No one is available right now. Browse all professionals nearby.</T></Card>
               ) : (

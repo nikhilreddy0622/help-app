@@ -29,7 +29,7 @@ export default function Jobs() {
   const items = useMemo(() => q.data?.pages.flatMap((p) => p.items) ?? [], [q.data]);
 
   return (
-    <Screen title="Jobs near you" subtitle={loc.label} contentStyle={{ flex: 1 }}>
+    <Screen title="Jobs near you" subtitle={loc.label} back={false} contentStyle={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 16, paddingTop: 8, gap: 10 }}>
         <View style={{ height: 48, borderRadius: 12, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.borderStrong, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12 }}>
           <Search size={18} color={colors.navy} />

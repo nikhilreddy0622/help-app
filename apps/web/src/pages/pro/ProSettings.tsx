@@ -56,7 +56,6 @@ export default function ProSettings() {
       <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
       <QueryBoundary query={c} skeleton={<SkeletonList rows={1} height="h-48" />}>{(d) => <Contact initial={d} />}</QueryBoundary>
       <QueryBoundary query={r} skeleton={<SkeletonList rows={1} height="h-48" />}>{(d) => <QuickReplies initial={d.replies} />}</QueryBoundary>
-      <Link to="/pro/live/settings" className="flex items-center justify-between rounded-xl border border-line bg-white px-4 py-4"><span className="flex items-center gap-2 font-semibold text-navy"><Zap className="h-5 w-5 text-teal" aria-hidden />Live requests</span><span className="text-sm text-subtle">Manage &rsaquo;</span></Link>
     </div>
   );
 }

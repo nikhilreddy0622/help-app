@@ -5,8 +5,9 @@ import { useSession, type Mode } from '@/lib/session';
 
 export interface TabDef { name: string; title: string; icon: (p: { color: string; size: number }) => React.ReactNode; badge?: number }
 
-/** Shared tab navigator. Redirects when the saved mode does not match the tab group. */
-export function ModeTabs({ mode, tabs, redirect }: { mode: Mode; tabs: TabDef[]; redirect: string }) {
+/** Shared tab navigator. Redirects when the saved mode does not match the tab group.
+ *  `hidden` lists routes that live in the group but should NOT show as tabs (reachable by navigation only). */
+export function ModeTabs({ mode, tabs, redirect, hidden = [] }: { mode: Mode; tabs: TabDef[]; redirect: string; hidden?: string[] }) {
   const { mode: current } = useSession();
   if (current !== mode) return <Redirect href={redirect as never} />;
   return (
@@ -27,6 +28,9 @@ export function ModeTabs({ mode, tabs, redirect }: { mode: Mode; tabs: TabDef[];
           name={t.name}
           options={{ title: t.title, tabBarIcon: ({ color, size }) => t.icon({ color: String(color), size: Math.min(size, 24) }), tabBarBadge: t.badge ? t.badge : undefined, tabBarAccessibilityLabel: t.badge ? `${t.title}, ${t.badge} new` : t.title }}
         />
+      ))}
+      {hidden.map((name) => (
+        <Tabs.Screen key={name} name={name} options={{ href: null }} />
       ))}
     </Tabs>
   );

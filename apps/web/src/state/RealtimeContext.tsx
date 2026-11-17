@@ -60,13 +60,6 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         case 'support.updated':
           void qc.invalidateQueries({ queryKey: ['support'] });
           break;
-        case 'live_request.responder_added':
-        case 'live_request.closed':
-          void qc.invalidateQueries({ queryKey: ['live-mine'] });
-          break;
-        case 'live_request.created':
-          void qc.invalidateQueries({ queryKey: ['live-incoming'] });
-          break;
         default: break;
       }
     };

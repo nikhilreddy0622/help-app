@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Bell, BriefcaseBusiness, ChevronRight, FileText, Languages, Link2, LifeBuoy, LogOut, Monitor, PencilLine, ShieldCheck } from 'lucide-react-native';
+import { Bell, BriefcaseBusiness, ChevronRight, FileText, Heart, Languages, Link2, LifeBuoy, LogOut, MessageCircle, Monitor, PencilLine, ShieldCheck } from 'lucide-react-native';
 import { Group, Row } from '@/components/Screen';
 import { Avatar, Button, Card, EmptyState, T } from '@/components/ui';
 import { useSession } from '@/lib/session';
@@ -64,6 +64,10 @@ export default function Profile() {
               ? <Button title={mode === 'customer' ? 'Switch to provider mode' : 'Switch to customer mode'} onPress={() => switchMode(mode === 'customer' ? 'provider' : 'customer')} />
               : <Button title="Become a professional" onPress={() => router.push('/onboarding')} />}
           </Card>
+          <Group>
+            <Row icon={ic(MessageCircle)} label="Messages" right={chev} onPress={() => router.push('/messages')} />
+            <Row icon={ic(Heart)} label="Saved professionals" right={chev} onPress={() => router.push('/saved')} />
+          </Group>
           <AccountRows />
           <Button kind="secondary" title="Sign out" icon={<LogOut size={18} color={colors.navy} />} onPress={signOut} />
         </ScrollView>

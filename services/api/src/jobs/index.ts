@@ -5,7 +5,6 @@ import { notifySafe } from '../integrations/notify';
 import { logger, prisma } from '../lib/core';
 import { refreshDiscoverability } from '../modules/providers/entitlement';
 import { applyStatus, reconcileOne } from '../modules/subscriptions/service';
-import { runLiveRequestMaintenance } from '../modules/liveRequests/service';
 import { ensureListener, stopRealtime } from '../realtime/bus';
 
 const HOUR = 3_600_000;
@@ -107,8 +106,6 @@ const TASKS: { name: string; cron: string; tz?: string; run: () => Promise<unkno
   { name: 'status-nudge', cron: '0 9 * * *', tz: 'Asia/Kolkata', run: () => statusNudges() },
   { name: 'renewal-reminders', cron: '0 9 * * *', tz: 'Asia/Kolkata', run: () => renewalReminders() },
   { name: 'email-retry', cron: '*/10 * * * *', run: () => retryEmails() },
-  // Live "Request now": expire overdue, launch scheduled, re-broadcast those with no responders.
-  { name: 'live-request-maintenance', cron: '* * * * *', run: () => runLiveRequestMaintenance() },
 ];
 
 let boss: PgBoss | null = null;

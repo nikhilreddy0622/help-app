@@ -8,12 +8,11 @@ import type {
   NotificationPreferences, PageMeta, RealtimeEvent, SupportMessageDto, SupportTicketDetail, SupportTicketDto,
   PaymentDto, PortfolioItem, ProviderCard, ProviderDashboard, ProviderPublicProfile, ReviewDto, ServiceOffering,
   SubscriptionDto, SubscriptionPlanDto, JobCard, JobDetail, MyJobPosting,
-  LiveRequestDto, IncomingLiveRequest, LiveRequestSettings,
 } from '@help/types';
 import type {
   AvailabilityInput, CategoryInput, ContactSettingsInput, CreateReportInput, SetStatusInput, CreateReviewInput,
   DiscoverySearchInput, PlanInput, PortfolioItemInput, ProviderBasicsInput, ProviderLocationInput, ServiceOfferingInput,
-  UpdateMeInput, JobPostingInput, JobSearchInput, CreateLiveRequestInput, LiveRespondInput, LiveRequestSettingsInput,
+  UpdateMeInput, JobPostingInput, JobSearchInput,
 } from '@help/validation';
 
 export class ApiError extends Error {
@@ -155,21 +154,6 @@ export function createApiClient(opts: ClientOptions) {
       update: (id: string, b: Partial<JobPostingInput>) => patch<MyJobPosting>(`/jobs/me/${id}`, b),
       setStatus: (id: string, status: 'OPEN' | 'PAUSED' | 'CLOSED') => put<MyJobPosting>(`/jobs/me/${id}/status`, { status }),
       remove: (id: string) => del<void>(`/jobs/me/${id}`),
-    },
-    // Live "Request now": on-demand broadcast. The app connects the two; the job stays outside.
-    liveRequests: {
-      // customer
-      create: (b: CreateLiveRequestInput) => post<LiveRequestDto>('/live-requests', b),
-      mine: () => get<LiveRequestDto | null>('/live-requests/mine'),
-      get: (id: string) => get<LiveRequestDto>(`/live-requests/${id}`),
-      cancel: (id: string) => post<LiveRequestDto>(`/live-requests/${id}/cancel`, {}),
-      connect: (id: string, providerId: string) => post<{ phone: string | null; conversationId: string | null }>(`/live-requests/${id}/connect/${providerId}`, {}),
-      // provider
-      incoming: (q?: { lat?: number; lng?: number }) => get<IncomingLiveRequest[]>('/live-requests/incoming', q as Query),
-      respond: (id: string, b: LiveRespondInput) => post<IncomingLiveRequest>(`/live-requests/${id}/respond`, b),
-      withdraw: (id: string) => post<IncomingLiveRequest>(`/live-requests/${id}/withdraw`, {}),
-      settings: () => get<LiveRequestSettings>('/live-requests/settings'),
-      setSettings: (b: LiveRequestSettingsInput) => put<LiveRequestSettings>('/live-requests/settings', b),
     },
     providers: {
       bySlug: (slug: string) => get<ProviderPublicProfile | { redirectTo: string }>(`/providers/${encodeURIComponent(slug)}`),
