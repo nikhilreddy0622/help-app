@@ -31,8 +31,8 @@ export default function Welcome() {
     <Screen noHeader scroll contentStyle={{ padding: 24, justifyContent: 'space-between', gap: 32 }}>
       <View style={{ paddingTop: 48, gap: 16 }}>
         <Logo size={40} />
-        <T v="display">Trusted professionals, right around you</T>
-        <T v="body" color={colors.textMuted}>Find verified electricians, tutors, drivers and more nearby. Sign in to chat, save and review.</T>
+        <T v="display">Local help you can count on</T>
+        <T v="body" color={colors.textMuted}>Electricians, tutors, drivers and more — real people near you. Sign in to chat, save your favourites and leave a review.</T>
       </View>
       <View style={{ gap: 12 }}>
         <Button size="lg" title="Continue with phone" icon={<Phone size={18} color="#fff" />} onPress={() => router.push('/auth/phone')} />
