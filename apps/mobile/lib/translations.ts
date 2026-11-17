@@ -16,8 +16,8 @@ const hi: Dict = {
   Saved: 'सहेजे गए',
   'Saved professionals': 'सहेजे गए पेशेवर',
   // home
-  'Discover services near you': 'अपने आस-पास सेवाएँ खोजें',
-  'Find trusted professionals and businesses in your area.': 'अपने क्षेत्र में भरोसेमंद पेशेवर और व्यवसाय खोजें।',
+  'Someone nearby can help': 'आपके आस-पास कोई मदद कर सकता है',
+  'Real local pros — see their reviews, then message or call them yourself.': 'असली स्थानीय पेशेवर — उनकी समीक्षाएँ देखें, फिर खुद मैसेज या कॉल करें।',
   'Search for any service': 'कोई भी सेवा खोजें',
   'Available now nearby': 'अभी पास में उपलब्ध',
   'Looking for work?': 'काम की तलाश है?',

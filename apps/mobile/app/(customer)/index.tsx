@@ -74,8 +74,8 @@ export default function Home() {
     <Screen header={header} onRefresh={async () => { await q.refetch(); }} contentStyle={{ padding: 20, gap: 24 }}>
       {locRow}
       <View style={{ gap: 6 }}>
-        <T v="display">{t('Discover services near you')}</T>
-        <T color={colors.textMuted}>{t('Find trusted professionals and businesses in your area.')}</T>
+        <T v="display">{t('Someone nearby can help')}</T>
+        <T color={colors.textMuted}>{t('Real local pros — see their reviews, then message or call them yourself.')}</T>
       </View>
       <Pressable
         onPress={() => router.push('/explore')} accessibilityRole="search" accessibilityLabel="Search for any service"
