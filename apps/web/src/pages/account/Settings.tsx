@@ -7,7 +7,7 @@ import { formatDateTime } from '../../lib/format';
 import { useAuth } from '../../state/AuthContext';
 import { Seo } from '../../components/ui/Seo';
 import { Button } from '../../components/ui/Button';
-import { Input, Select, fieldErrors } from '../../components/ui/Field';
+import { Input, fieldErrors } from '../../components/ui/Field';
 import { QueryBoundary, SkeletonList } from '../../components/ui/States';
 import { GoogleButton } from '../../components/forms/GoogleButton';
 import { PhoneOtp } from '../../components/forms/PhoneOtp';
@@ -31,9 +31,6 @@ function ProfileForm() {
       <Input label="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errors.name} autoComplete="name" />
       <Input label="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} error={errors.email} autoComplete="email" />
       <Input label="City" value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} error={errors.city} />
-      <Select label="Language" value={f.preferredLanguage} onChange={(e) => setF({ ...f, preferredLanguage: e.target.value })}>
-        {[['en', 'English'], ['hi', 'Hindi'], ['kn', 'Kannada'], ['ta', 'Tamil'], ['te', 'Telugu']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-      </Select>
       {m.isError && <p role="alert" className="text-sm font-medium text-danger">{errorMessage(m.error)}</p>}
       {m.isSuccess && <p role="status" className="text-sm font-medium text-success-fg">Saved.</p>}
       <div><Button type="submit" loading={m.isPending}>Save changes</Button></div>

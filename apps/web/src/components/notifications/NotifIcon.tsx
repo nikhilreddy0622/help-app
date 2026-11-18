@@ -10,7 +10,7 @@ export const CATEGORY_META: Record<NotificationCategory, { label: string; icon: 
   PROMOTIONS: { label: 'Offers', icon: Megaphone },
   LIVE_REQUESTS: { label: 'Live requests', icon: Zap },
 };
-export const CATEGORIES = Object.keys(CATEGORY_META) as NotificationCategory[];
+export const CATEGORIES = (Object.keys(CATEGORY_META) as NotificationCategory[]).filter((c) => c !== 'LIVE_REQUESTS');
 
 export function NotifIcon({ n, size = 40 }: { n: Pick<NotificationDto, 'imageUrl' | 'category'>; size?: number }) {
   const Icon = CATEGORY_META[n.category]?.icon ?? Activity;

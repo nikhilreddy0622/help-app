@@ -3,7 +3,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { Phone, Zap, Bell, ChevronRight, FileText, Languages, LifeBuoy, Link2, LogOut, Monitor, Radio, Receipt, RefreshCw, ShieldCheck, PencilLine } from 'lucide-react-native';
+import { Phone, Zap, Bell, ChevronRight, FileText, LifeBuoy, Link2, LogOut, Monitor, Receipt, RefreshCw, ShieldCheck, PencilLine } from 'lucide-react-native';
 import { Group, Row } from '@/components/Screen';
 import { Button, T } from '@/components/ui';
 import { api } from '@/lib/api';
@@ -33,7 +33,6 @@ export default function ProviderSettings() {
         </Group>
         <Group>
           <Row icon={ic(PencilLine)} label="Account details" right={chev} onPress={() => router.push('/account/edit')} />
-          <Row icon={ic(Languages)} label="Language" right={chev} onPress={() => router.push('/account/language')} />
           <Row icon={ic(Link2)} label="Linked accounts" right={chev} onPress={() => router.push('/account/linked')} />
           <Row icon={ic(Monitor)} label="Devices and sessions" right={chev} onPress={() => router.push('/account/sessions')} />
           <Row icon={ic(ShieldCheck)} label="Privacy and data" right={chev} onPress={() => router.push('/account/privacy')} />

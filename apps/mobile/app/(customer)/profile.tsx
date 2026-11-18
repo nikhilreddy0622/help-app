@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Bell, BriefcaseBusiness, ChevronRight, FileText, Heart, Languages, Link2, LifeBuoy, LogOut, MessageCircle, Monitor, PencilLine, ShieldCheck } from 'lucide-react-native';
+import { Bell, BriefcaseBusiness, ChevronRight, FileText, Heart, Link2, LifeBuoy, LogOut, MessageCircle, Monitor, PencilLine, ShieldCheck } from 'lucide-react-native';
 import { Group, Row } from '@/components/Screen';
 import { Avatar, Button, Card, EmptyState, T } from '@/components/ui';
 import { useSession } from '@/lib/session';
@@ -18,7 +18,6 @@ export function AccountRows() {
     <>
       <Group>
         <Row icon={ic(PencilLine)} label="Edit profile" right={chev} onPress={() => router.push('/account/edit')} />
-        <Row icon={ic(Languages)} label="Language" right={chev} onPress={() => router.push('/account/language')} />
         <Row icon={ic(Link2)} label="Linked accounts" right={chev} onPress={() => router.push('/account/linked')} />
         <Row icon={ic(Monitor)} label="Devices and sessions" right={chev} onPress={() => router.push('/account/sessions')} />
         <Row icon={ic(Bell)} label="Notifications" right={chev} onPress={() => router.push('/notifications/settings')} />
