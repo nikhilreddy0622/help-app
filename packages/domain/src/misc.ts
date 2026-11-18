@@ -99,3 +99,15 @@ export function localParts(d: Date, timeZone: string): { weekday: number; minute
     dateKey: `${parts.year}-${parts.month}-${parts.day}`,
   };
 }
+
+/** Android notification channels the app creates; the server must target one of these ids. */
+export const ANDROID_CHANNELS = [
+  { id: 'status', name: 'Status and reviews', high: true, cats: ['STATUS', 'REVIEWS'] },
+  { id: 'messages', name: 'Messages', high: true, cats: ['MESSAGES'] },
+  { id: 'payments', name: 'Payments', high: true, cats: ['PAYMENTS', 'ACCOUNT'] },
+  { id: 'promotions', name: 'Offers and updates', high: false, cats: ['PROMOTIONS'] },
+] as const;
+
+export function androidChannelFor(category: string): string {
+  return ANDROID_CHANNELS.find((c) => (c.cats as readonly string[]).includes(category))?.id ?? 'messages';
+}

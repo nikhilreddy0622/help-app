@@ -1,4 +1,5 @@
 import type { NotificationCategory, Prisma } from '@prisma/client';
+import { androidChannelFor } from '@help/domain';
 import { logger, prisma } from '../lib/core';
 import { emitToUser } from '../realtime/bus';
 import { getPreferences, inQuietHours, toNotificationDto, unreadCounts } from '../modules/notifications/service';
@@ -64,7 +65,7 @@ export async function notifyUser(userId: string, n: NotifyInput): Promise<void> 
     sendPush(userId, {
       title: n.title,
       body: n.body,
-      channelId: n.category.toLowerCase(),
+      channelId: androidChannelFor(n.category),
       data: { ...(n.data ?? {}), link: n.link ?? '', notificationId: row.id, category: n.category },
     }).catch((e) => logger.warn({ err: e }, 'push failed'));
   }

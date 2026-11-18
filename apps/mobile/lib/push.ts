@@ -2,17 +2,13 @@ import { Platform } from 'react-native';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import type { NotificationCategory } from '@help/types';
+import { ANDROID_CHANNELS, androidChannelFor } from '@help/domain';
 import { api } from './api';
 
 export const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
-const CHANNELS: { id: string; name: string; importance: Notifications.AndroidImportance; cats: NotificationCategory[] }[] = [
-  { id: 'status', name: 'Status and reviews', importance: Notifications.AndroidImportance.HIGH, cats: ['STATUS', 'REVIEWS'] },
-  { id: 'messages', name: 'Messages', importance: Notifications.AndroidImportance.HIGH, cats: ['MESSAGES'] },
-  { id: 'payments', name: 'Payments', importance: Notifications.AndroidImportance.HIGH, cats: ['PAYMENTS', 'ACCOUNT'] },
-  { id: 'promotions', name: 'Offers and updates', importance: Notifications.AndroidImportance.LOW, cats: ['PROMOTIONS'] },
-];
-export const channelFor = (c: NotificationCategory) => CHANNELS.find((x) => x.cats.includes(c))?.id ?? 'messages';
+const CHANNELS = ANDROID_CHANNELS.map((c) => ({ id: c.id, name: c.name, importance: c.high ? Notifications.AndroidImportance.HIGH : Notifications.AndroidImportance.LOW }));
+export const channelFor = (c: NotificationCategory) => androidChannelFor(c);
 
 let configured = false;
 /** The in-app banner replaces the OS banner while the app is open, so foreground pushes are not shown by the system. */
@@ -49,8 +45,8 @@ export async function setBadge(n: number) {
 async function sendToken() {
   const platform = Platform.OS === 'ios' ? 'ios' : 'android';
   try {
-    const projectId = (Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined)?.eas?.projectId;
-    const t = projectId ? await Notifications.getExpoPushTokenAsync({ projectId }) : await Notifications.getDevicePushTokenAsync();
+    // The API sends through firebase-admin directly, which only accepts native FCM tokens (not ExponentPushToken[...]).
+    const t = await Notifications.getDevicePushTokenAsync();
     const token = typeof t.data === 'string' ? t.data : String(t.data);
     await api.users.registerPushToken(token, platform);
   } catch {
