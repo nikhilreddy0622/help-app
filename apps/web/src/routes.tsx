@@ -9,8 +9,12 @@ import CategoryCity from './pages/CategoryCity';
 import Services from './pages/Services';
 import ProfilePage from './pages/Profile';
 import NotFound from './pages/NotFound';
+import ForProfessionals from './pages/ForProfessionals';
+import Help from './pages/Help';
+import Legal from './pages/legal/Legal';
+import { BlogIndex, BlogPost } from './pages/blog/Blog';
 
-// Public SEO routes are eager (server rendered); the logged-in areas are code-split and client rendered only.
+// Public SEO routes are eager (server rendered — lazy routes would SSR only their fallback); logged-in areas are code-split.
 function lz(load: () => Promise<{ default: ComponentType }>) {
   const C = lazy(load);
   return <Suspense fallback={<BrandLoader />}><C /></Suspense>;
@@ -25,9 +29,11 @@ export const routes: RouteObject[] = [
       { path: 'services', element: <Services /> },
       { path: 'c/:categorySlug/:city', element: <CategoryCity /> },
       { path: 'professionals/:slug', element: <ProfilePage /> },
-      { path: 'for-professionals', element: lz(() => import('./pages/ForProfessionals')) },
-      { path: 'legal/:doc', element: lz(() => import('./pages/legal/Legal')) },
-      { path: 'help', element: lz(() => import('./pages/Help')) },
+      { path: 'for-professionals', element: <ForProfessionals /> },
+      { path: 'legal/:doc', element: <Legal /> },
+      { path: 'help', element: <Help /> },
+      { path: 'blog', element: <BlogIndex /> },
+      { path: 'blog/:slug', element: <BlogPost /> },
       { path: 'compare', element: lz(() => import('./pages/Compare')) },
       { path: 'support', element: lz(() => import('./pages/support/Support').then((m) => ({ default: m.SupportList }))) },
       { path: 'support/new', element: lz(() => import('./pages/support/Support').then((m) => ({ default: m.SupportNew }))) },

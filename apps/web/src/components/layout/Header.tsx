@@ -74,6 +74,7 @@ export function Header() {
         <nav aria-label="Main" className="ml-4 hidden items-center gap-1 md:flex">
           <NavLink to="/search" className={navLink}>Find professionals</NavLink>
           <NavLink to="/for-professionals" className={navLink}>For professionals</NavLink>
+          <NavLink to="/blog" className={navLink}>Blog</NavLink>
           <NavLink to="/help" className={navLink}>Help</NavLink>
         </nav>
         <div className="ml-auto flex items-center gap-2">
@@ -90,7 +91,7 @@ export function Header() {
       {menu && (
         <nav aria-label="Mobile" className="border-t border-line px-4 pb-4 pt-2 md:hidden">
           <div className="flex flex-col">
-            {[['/search', 'Find professionals'], ['/for-professionals', 'For professionals'], ['/help', 'Help'], ...(me ? [['/account', 'Customer area'], [me.hasProviderProfile ? '/pro' : '/pro/onboarding', me.hasProviderProfile ? 'Professional area' : 'Become a professional']] : [])].map(([to, label]) => (
+            {[['/search', 'Find professionals'], ['/for-professionals', 'For professionals'], ['/blog', 'Blog'], ['/help', 'Help'], ...(me ? [['/account', 'Customer area'], [me.hasProviderProfile ? '/pro' : '/pro/onboarding', me.hasProviderProfile ? 'Professional area' : 'Become a professional']] : [])].map(([to, label]) => (
               <Link key={to} to={to as string} className="rounded-md px-2 py-3 text-[15px] font-medium" style={{ color: '#172B4D' }}>{label}</Link>
             ))}
           </div>

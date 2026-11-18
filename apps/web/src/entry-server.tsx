@@ -9,6 +9,7 @@ import { routes } from './routes';
 import { createServerApi } from './lib/api';
 import { API_URL } from './lib/env';
 import { CITIES, cityBySlug, DEFAULT_CITY } from './lib/cities';
+import { POSTS, postBySlug } from './content/blog';
 import { categoriesQuery, homeQuery, isRedirect, parseSearch, profileQuery, redirectPath, searchInfiniteQuery } from './lib/queries';
 
 export interface RenderOptions { origin: string; apiUrl?: string }
@@ -53,6 +54,14 @@ const SSR_ROUTES: SsrRoute[] = [
     },
   },
   {
+    re: /^\/for-professionals\/?$/,
+    prefetch: async (qc, api) => { await quiet(() => withTimeout(qc.prefetchQuery({ queryKey: ['plans'], queryFn: () => api.subscriptions.plans() }))); },
+  },
+  { re: /^\/help\/?$/, prefetch: async () => {} },
+  { re: /^\/legal\/([^/]+)\/?$/, prefetch: async () => {} },
+  { re: /^\/blog\/?$/, prefetch: async () => {} },
+  { re: /^\/blog\/([^/]+)\/?$/, prefetch: async (_qc, _api, m) => (postBySlug(decodeURIComponent(m[1] ?? '')) ? undefined : { status: 404 }) },
+  {
     re: /^\/professionals\/([^/]+)\/?$/,
     prefetch: async (qc, api, m) => {
       const slug = decodeURIComponent(m[1] ?? '');
@@ -67,7 +76,7 @@ const SSR_ROUTES: SsrRoute[] = [
 ];
 
 // Client-rendered areas answer 200 with an empty shell; anything else unknown is a real 404.
-const CLIENT_ONLY = /^\/(login|account|pro|notifications|for-professionals|legal|help|support|compare)(\/|$)/;
+const CLIENT_ONLY = /^\/(login|account|pro|notifications|support|compare)(\/|$)/;
 
 const serialize = (v: unknown) => JSON.stringify(v).replace(/</g, '\u003c');
 const headString = (h: HelmetServerState) => [h.title, h.meta, h.link, h.script].map((x) => x.toString()).join('\n');
@@ -109,7 +118,7 @@ export async function render(url: string, opts: RenderOptions): Promise<RenderRe
 }
 
 // ---------- sitemap / robots ----------
-const staticPaths = ['/', '/search', '/services', '/for-professionals', '/legal/terms', '/legal/privacy', '/legal/cancellation-refund', '/legal/grievance'];
+const staticPaths = ['/', '/search', '/services', '/for-professionals', '/help', '/blog', ...POSTS.map((p) => `/blog/${p.slug}`), '/legal/terms', '/legal/privacy', '/legal/cancellation-refund', '/legal/grievance'];
 let sitemapCache: { at: number; urls: string[] } | null = null;
 
 async function collectUrls(apiUrl: string): Promise<string[]> {

@@ -3,9 +3,9 @@ import { BRAND } from '@help/ui-tokens';
 import { Logo } from '../brand/Brand';
 
 const cols: { title: string; links: [string, string][] }[] = [
-  { title: 'Discover', links: [['/search', 'Find professionals'], ['/c/electrician/bengaluru', 'Electricians'], ['/c/tutor/bengaluru', 'Tutors'], ['/c/photographer/bengaluru', 'Photographers']] },
+  { title: 'Discover', links: [['/search', 'Find professionals'], ['/c/electricians/bengaluru', 'Electricians'], ['/c/plumbers/bengaluru', 'Plumbers'], ['/c/tutors/bengaluru', 'Tutors'], ['/c/photographers/bengaluru', 'Photographers']] },
   { title: 'Professionals', links: [['/for-professionals', 'Pricing and plans'], ['/pro/onboarding', 'Create your profile'], ['/pro', 'Professional area']] },
-  { title: 'Help', links: [['/help', 'Help centre'], ['/support', 'Contact support'], ['/support/new', 'Report a problem']] },
+  { title: 'Help', links: [['/blog', 'Blog'], ['/help', 'Help centre'], ['/support', 'Contact support'], ['/support/new', 'Report a problem']] },
   { title: 'Legal', links: [['/legal/terms', 'Terms of use'], ['/legal/privacy', 'Privacy (DPDP)'], ['/legal/cancellation-refund', 'Cancellation and refund'], ['/legal/grievance', 'Grievance officer']] },
 ];
 
