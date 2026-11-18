@@ -13,7 +13,6 @@ import { api } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { useLocation } from '@/lib/location';
 import { useRealtime } from '@/lib/realtime';
-import { useT } from '@/lib/i18n';
 import { colors, shadowSm } from '@/lib/theme';
 import { distanceLabel, priceLabel } from '@/lib/format';
 
@@ -45,7 +44,6 @@ export default function Home() {
   const q = useQuery({ queryKey: ['home', loc.coords.lat, loc.coords.lng], queryFn: () => api.discovery.home(loc.coords) });
   const { signedIn } = useSession();
   const { unread } = useRealtime();
-  const t = useT();
   const unreadMsgs = unread.byCategory.MESSAGES ?? 0;
   const recent = useQuery({ queryKey: ['recently-viewed'], queryFn: () => api.users.recentlyViewed(), enabled: signedIn });
   const openPro = (p: PC) => router.push(`/provider/${p.slug}`);
@@ -74,8 +72,8 @@ export default function Home() {
     <Screen header={header} onRefresh={async () => { await q.refetch(); }} contentStyle={{ padding: 20, gap: 24 }}>
       {locRow}
       <View style={{ gap: 6 }}>
-        <T v="display">{t('Someone nearby can help')}</T>
-        <T color={colors.textMuted}>{t('Real local pros — see their reviews, then message or call them yourself.')}</T>
+        <T v="display">Someone nearby can help</T>
+        <T color={colors.textMuted}>Real local pros — see their reviews, then message or call them yourself.</T>
       </View>
       <Pressable
         onPress={() => router.push('/explore')} accessibilityRole="search" accessibilityLabel="Search for any service"
@@ -83,7 +81,7 @@ export default function Home() {
       >
         <Search size={22} color={colors.navy} />
         <View style={{ flex: 1 }}>
-          <T v="label" weight={600}>{t('Search for any service')}</T>
+          <T v="label" weight={600}>Search for any service</T>
           <T v="caption">Electrician, tutor, photographer{'…'}</T>
         </View>
       </Pressable>
@@ -93,8 +91,8 @@ export default function Home() {
       >
         <Briefcase size={20} color={colors.teal700} />
         <View style={{ flex: 1 }}>
-          <T v="label" weight={600} color={colors.teal800}>{t('Looking for work?')}</T>
-          <T v="caption" color={colors.teal800}>{t('Browse jobs posted nearby')}</T>
+          <T v="label" weight={600} color={colors.teal800}>Looking for work?</T>
+          <T v="caption" color={colors.teal800}>Browse jobs posted nearby</T>
         </View>
         <ChevronRight size={20} color={colors.teal700} />
       </Pressable>
@@ -103,7 +101,7 @@ export default function Home() {
       <QueryBoundary q={q} skeleton={<HomeSkeleton />}>
         {(feed) => (
           <>
-            <Section title={t('Available now nearby')} action="See all" onAction={() => router.push({ pathname: '/explore', params: { availableNow: '1' } })}>
+            <Section title="Available now nearby" action="See all" onAction={() => router.push({ pathname: '/explore', params: { availableNow: '1' } })}>
               {feed.availableNow.length === 0 ? (
                 <Card><T color={colors.textMuted}>No one is available right now. Browse all professionals nearby.</T></Card>
               ) : (

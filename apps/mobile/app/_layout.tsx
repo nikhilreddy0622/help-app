@@ -13,7 +13,6 @@ import { LocationProvider } from '@/lib/location';
 import { RealtimeProvider } from '@/lib/realtime';
 import { configureNotifications } from '@/lib/push';
 import { CompareProvider } from '@/lib/compare';
-import { I18nProvider } from '@/lib/i18n';
 import { BrandLoader } from '@/components/Logo';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -42,14 +41,12 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <SessionProvider>
-            <I18nProvider>
-              <LocationProvider>
-                <CompareProvider>
-                  <StatusBar style="dark" />
-                  <Gate />
-                </CompareProvider>
-              </LocationProvider>
-            </I18nProvider>
+            <LocationProvider>
+              <CompareProvider>
+                <StatusBar style="dark" />
+                <Gate />
+              </CompareProvider>
+            </LocationProvider>
           </SessionProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

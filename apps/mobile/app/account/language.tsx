@@ -19,7 +19,7 @@ export default function Language() {
   };
   return (
     <Screen title="Language" contentStyle={{ padding: 16, gap: 12 }}>
-      <T color={colors.textMuted}>The app shows in your chosen language where available (English and Hindi so far, more coming). Anything not yet translated stays in English.</T>
+      <T color={colors.textMuted}>Your preferred language is used for messages and notifications. The app is in English for now.</T>
       <Group>{LANGS.map(([c, l]) => <Row key={c} label={l} onPress={() => pick(c)} right={me?.preferredLanguage === c ? <Check size={20} color={colors.teal700} /> : <View />} />)}</Group>
     </Screen>
   );
