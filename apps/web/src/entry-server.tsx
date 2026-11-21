@@ -66,6 +66,7 @@ const SSR_ROUTES: SsrRoute[] = [
     },
   },
   { re: /^\/help\/?$/, prefetch: async () => {} },
+  { re: /^\/delete-account\/?$/, prefetch: async () => {} },
   { re: /^\/legal\/([^/]+)\/?$/, prefetch: async () => {} },
   { re: /^\/blog\/?$/, prefetch: async () => {} },
   { re: /^\/blog\/([^/]+)\/?$/, prefetch: async (_qc, _api, m) => (postBySlug(decodeURIComponent(m[1] ?? '')) ? undefined : { status: 404 }) },
