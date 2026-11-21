@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { UpdateMeSchema } from '@help/validation';
 import { Screen } from '@/components/Screen';
 import { Avatar, Button, Input, T } from '@/components/ui';
@@ -12,6 +13,7 @@ import { pickImage, uploadImage } from '@/lib/upload';
 export default function EditProfile() {
   const router = useRouter();
   const { me, setMe } = useSession();
+  const qc = useQueryClient();
   const [name, setName] = useState(me?.name ?? '');
   const [email, setEmail] = useState(me?.email ?? '');
   const [avatar, setAvatar] = useState(me?.avatarUrl ?? null);
@@ -23,7 +25,11 @@ export default function EditProfile() {
       const [f] = await pickImage({ aspect: [1, 1] });
       if (!f) return;
       setBusy(true);
-      setAvatar(await uploadImage(f, 'AVATAR'));
+      const url = await uploadImage(f, 'AVATAR');
+      setAvatar(url);
+      // Save straight away so the new photo shows everywhere even if the user leaves without tapping Save.
+      setMe(await api.users.updateMe({ avatarUrl: url }));
+      void qc.invalidateQueries({ queryKey: ['my-provider'] });
     } catch (e) { Alert.alert('Photo', errorMessage(e)); } finally { setBusy(false); }
   };
 
@@ -31,7 +37,7 @@ export default function EditProfile() {
     const r = UpdateMeSchema.safeParse({ name: name.trim() || undefined, email: email.trim() || undefined, avatarUrl: avatar ?? undefined });
     if (!r.success) { setErrs(Object.fromEntries(r.error.issues.map((i) => [String(i.path[0]), i.message]))); return; }
     setErrs({}); setBusy(true);
-    try { setMe(await api.users.updateMe(r.data)); router.back(); } catch (e) { Alert.alert('Could not save', errorMessage(e)); } finally { setBusy(false); }
+    try { setMe(await api.users.updateMe(r.data)); void qc.invalidateQueries({ queryKey: ['my-provider'] }); router.back(); } catch (e) { Alert.alert('Could not save', errorMessage(e)); } finally { setBusy(false); }
   };
 
   return (

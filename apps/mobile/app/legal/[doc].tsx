@@ -12,7 +12,10 @@ export default function LegalDocScreen() {
   if (!d) return <Screen title="Legal"><EmptyState title="Page not found" /></Screen>;
   return (
     <Screen title={d.title} contentStyle={{ padding: 20, gap: 20 }}>
-      <View style={{ backgroundColor: colors.warningBg, borderRadius: 12, padding: 12 }}><T v="caption" color={colors.warningFg}>[Pending legal review]</T></View>
+      <View style={{ gap: 6 }}>
+        <T color={colors.textSubtle}>{d.intro}</T>
+        <T v="caption">Last updated {d.updated}</T>
+      </View>
       {d.sections.map((s) => (
         <View key={s.h} style={{ gap: 6 }}><T v="heading">{s.h}</T><T color={colors.textSubtle}>{s.p}</T></View>
       ))}

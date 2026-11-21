@@ -8,6 +8,7 @@ import SearchPage from './pages/Search';
 import CategoryCity from './pages/CategoryCity';
 import Services from './pages/Services';
 import CategoryGroup from './pages/CategoryGroup';
+import DeleteAccount from './pages/DeleteAccount';
 import ProfilePage from './pages/Profile';
 import NotFound from './pages/NotFound';
 import ForProfessionals from './pages/ForProfessionals';
@@ -34,6 +35,7 @@ export const routes: RouteObject[] = [
       { path: 'for-professionals', element: <ForProfessionals /> },
       { path: 'legal/:doc', element: <Legal /> },
       { path: 'help', element: <Help /> },
+      { path: 'delete-account', element: <DeleteAccount /> },
       { path: 'blog', element: <BlogIndex /> },
       { path: 'blog/:slug', element: <BlogPost /> },
       { path: 'compare', element: lz(() => import('./pages/Compare')) },

@@ -37,7 +37,7 @@ export default function Receipt() {
                 {sub.data && row('Plan', sub.data.plan.name)}
                 {me && row('Billed to', me.name ?? me.email ?? me.phone ?? 'Account holder')}
               </dl>
-              <p className="mt-6 text-xs text-muted">Payments are processed by Razorpay. Tax details on this receipt are to be finalised. [Pending legal review]</p>
+              <p className="mt-6 text-xs text-muted">Payments are processed by Razorpay.</p>
               <Button variant="secondary" className="mt-6 print:hidden" icon={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Print or save as PDF</Button>
             </article>
           );

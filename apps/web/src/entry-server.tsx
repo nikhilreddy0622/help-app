@@ -126,7 +126,7 @@ export async function render(url: string, opts: RenderOptions): Promise<RenderRe
 }
 
 // ---------- sitemap / robots ----------
-const staticPaths = ['/', '/search', '/services', '/for-professionals', '/help', '/blog', ...POSTS.map((p) => `/blog/${p.slug}`), '/legal/terms', '/legal/privacy', '/legal/cancellation-refund', '/legal/grievance'];
+const staticPaths = ['/', '/search', '/services', '/for-professionals', '/help', '/delete-account', '/blog', ...POSTS.map((p) => `/blog/${p.slug}`), '/legal/terms', '/legal/privacy', '/legal/cancellation-refund', '/legal/grievance'];
 let sitemapCache: { at: number; urls: string[] } | null = null;
 
 async function collectUrls(apiUrl: string): Promise<string[]> {

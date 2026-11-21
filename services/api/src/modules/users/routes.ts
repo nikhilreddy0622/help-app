@@ -30,6 +30,8 @@ usersRouter.patch('/me', ah(async (req, res) => {
     }
   }
   await prisma.user.update({ where: { id: req.user!.id }, data });
+  // One photo per person: a professional's public photo follows their account photo (getMe prefers the provider's).
+  if (b.avatarUrl) await prisma.providerProfile.updateMany({ where: { userId: req.user!.id }, data: { avatarUrl: b.avatarUrl } });
   ok(res, await getMe(req.user!.id));
 }));
 

@@ -78,7 +78,7 @@ export default function Subscription() {
                   <li>You keep full access until <b>{formatDate(sub?.currentPeriodEnd)}</b>. You will not be charged again.</li>
                   <li>After that, your profile is hidden from search and customers cannot start new chats with you.</li>
                   <li>Your profile, reviews and existing conversations are never deleted.</li>
-                  <li>Refunds follow our <Link to="/legal/cancellation-refund">cancellation and refund policy</Link>. [Pending legal review]</li>
+                  <li>Refunds follow our <Link to="/legal/cancellation-refund">cancellation and refund policy</Link>.</li>
                 </ul>
                 {cancel.isError && <p role="alert" className="mt-3 text-sm font-medium text-danger">{errorMessage(cancel.error)}</p>}
               </Modal>

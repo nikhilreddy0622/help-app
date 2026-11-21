@@ -115,7 +115,7 @@ function DataPrivacy() {
           <li>Your profile details, saved professionals and notification settings are deleted.</li>
           <li>Your conversations are removed from your account.</li>
           {me?.hasProviderProfile && <li>Your professional profile is removed from search, and your reviews and listing disappear. Turn off subscription renewal first in <Link to="/pro/subscription">Subscription and billing</Link> so you are not charged again.</li>}
-          <li>Some records may be kept where the law requires, such as payment records. [Pending legal review]</li>
+          <li>Some records may be kept where the law requires, such as payment and tax records.</li>
           <li>This cannot be undone. Consider <button type="button" className="font-semibold text-teal-700 underline" onClick={() => exp.mutate()}>downloading your data</button> first.</li>
         </ul>
         <label className="mt-4 flex items-start gap-2 text-sm"><input type="checkbox" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} className="mt-1 h-4 w-4 accent-teal-700" />I understand and want to delete my account.</label>

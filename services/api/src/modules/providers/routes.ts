@@ -58,6 +58,7 @@ me.patch('/', ah(async (req, res) => {
   const p = await requireOwnProvider(req.user!.id);
   if (b.primaryCategoryId) await assertCategory(b.primaryCategoryId);
   await prisma.providerProfile.update({ where: { id: p.id }, data: b });
+  if (b.avatarUrl) await prisma.user.update({ where: { id: req.user!.id }, data: { avatarUrl: b.avatarUrl } });
   await ensureSlug(p.id);
   await recompute(p.id);
   ok(res, await myProviderDto(p.id));
