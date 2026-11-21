@@ -73,6 +73,7 @@ export function Header() {
         {area === 'provider' && me && <span className="hidden rounded-md bg-teal-tint px-2 py-0.5 text-xs font-semibold text-teal-800 sm:inline">Professional</span>}
         <nav aria-label="Main" className="ml-4 hidden items-center gap-1 md:flex">
           <NavLink to="/search" className={navLink}>Find professionals</NavLink>
+          <NavLink to="/jobs" className={navLink}>Jobs</NavLink>
           <NavLink to="/for-professionals" className={navLink}>For professionals</NavLink>
           <NavLink to="/blog" className={navLink}>Blog</NavLink>
           <NavLink to="/help" className={navLink}>Help</NavLink>
@@ -91,7 +92,7 @@ export function Header() {
       {menu && (
         <nav aria-label="Mobile" className="border-t border-line px-4 pb-4 pt-2 md:hidden">
           <div className="flex flex-col">
-            {[['/search', 'Find professionals'], ['/for-professionals', 'For professionals'], ['/blog', 'Blog'], ['/help', 'Help'], ...(me ? [['/account', 'Customer area'], [me.hasProviderProfile ? '/pro' : '/pro/onboarding', me.hasProviderProfile ? 'Professional area' : 'Become a professional']] : [])].map(([to, label]) => (
+            {[['/search', 'Find professionals'], ['/jobs', 'Jobs'], ['/for-professionals', 'For professionals'], ['/blog', 'Blog'], ['/help', 'Help'], ...(me ? [['/account', 'Customer area'], [me.hasProviderProfile ? '/pro' : '/pro/onboarding', me.hasProviderProfile ? 'Professional area' : 'Become a professional']] : [])].map(([to, label]) => (
               <Link key={to} to={to as string} className="rounded-md px-2 py-3 text-[15px] font-medium" style={{ color: '#172B4D' }}>{label}</Link>
             ))}
           </div>

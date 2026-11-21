@@ -84,7 +84,7 @@ const SSR_ROUTES: SsrRoute[] = [
 ];
 
 // Client-rendered areas answer 200 with an empty shell; anything else unknown is a real 404.
-const CLIENT_ONLY = /^\/(login|account|pro|notifications|support|compare)(\/|$)/;
+const CLIENT_ONLY = /^\/(login|account|pro|notifications|support|compare|jobs)(\/|$)/;
 
 const serialize = (v: unknown) => JSON.stringify(v).replace(/</g, '\u003c');
 const headString = (h: HelmetServerState) => [h.title, h.meta, h.link, h.script].map((x) => x.toString()).join('\n');

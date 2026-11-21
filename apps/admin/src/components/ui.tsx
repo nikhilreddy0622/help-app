@@ -10,13 +10,13 @@ export const cx = (...a: (string | false | undefined | null)[]) => a.filter(Bool
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'danger' | 'ghost'; size?: 'sm' | 'md'; loading?: boolean };
 export function Button({ variant = 'secondary', size = 'md', loading, className, children, disabled, ...p }: BtnProps) {
   const v = {
-    primary: 'bg-teal-700 text-white hover:bg-teal-800 border-transparent',
+    primary: 'bg-brand text-white hover:bg-brand-deep border-transparent shadow-sm',
     secondary: 'bg-white text-ink border-line hover:bg-slate-50',
     danger: 'bg-danger text-white border-transparent hover:bg-red-800',
     ghost: 'bg-transparent text-subtle border-transparent hover:bg-slate-100',
   }[variant];
   return (
-    <button type="button" {...p} disabled={disabled || loading} className={cx('inline-flex items-center justify-center gap-2 rounded border font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50', size === 'sm' ? 'h-8 px-3 text-xs' : 'h-10 px-4 text-sm', v, className)}>
+    <button type="button" {...p} disabled={disabled || loading} className={cx('inline-flex items-center justify-center gap-2 rounded border font-semibold transition-[background-color,transform] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50', size === 'sm' ? 'h-8 px-3 text-xs' : 'h-10 px-4 text-sm', v, className)}>
       {children}
     </button>
   );
@@ -33,7 +33,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
     </div>
   );
 }
-const inputCls = 'h-10 w-full rounded border border-line bg-white px-3 text-sm text-ink placeholder:text-muted disabled:bg-slate-50';
+const inputCls = 'h-10 w-full rounded border border-line bg-white px-3 transition-colors focus:border-brand text-sm text-ink placeholder:text-muted disabled:bg-slate-50';
 export const Input = (p: InputHTMLAttributes<HTMLInputElement>) => <input {...p} className={cx(inputCls, p.className)} />;
 export const Select = (p: SelectHTMLAttributes<HTMLSelectElement>) => <select {...p} className={cx(inputCls, p.className)} />;
 export const Textarea = (p: TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...p} className={cx(inputCls, 'h-auto py-2', p.className)} />;
@@ -94,14 +94,14 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-ink">{title}</h1>
+        <h1 className="text-[26px] font-extrabold tracking-tight text-navy">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
-export const Card = ({ children, className }: { children: ReactNode; className?: string }) => <div className={cx('rounded-lg border border-line bg-white shadow-sm', className)}>{children}</div>;
+export const Card = ({ children, className }: { children: ReactNode; className?: string }) => <div className={cx('rounded-lg border border-line/70 bg-card shadow-[0_1px_2px_rgba(16,24,40,0.04)]', className)}>{children}</div>;
 export function Notice({ children, tone: t = 'amber' }: { children: ReactNode; tone?: 'amber' | 'blue' }) {
   return (
     <div role="note" className={cx('flex gap-2 rounded border px-3 py-2 text-sm', t === 'amber' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-sky-200 bg-sky-50 text-sky-900')}>

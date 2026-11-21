@@ -41,7 +41,7 @@ export function ForgotPassword() {
           <Button type="submit" variant="primary" loading={busy} className="w-full">Send reset link</Button>
         </form>
       )}
-      <p className="text-center text-sm"><Link to="/login" className="text-teal-700 underline">Back to sign in</Link></p>
+      <p className="text-center text-sm"><Link to="/login" className="text-brand underline">Back to sign in</Link></p>
     </Shell>
   );
 }
@@ -72,7 +72,7 @@ export function ResetPassword() {
           <Button type="submit" variant="primary" loading={busy} disabled={!pw || !!issue || pw !== confirm} className="w-full">Update password</Button>
         </form>
       )}
-      <p className="text-center text-sm"><Link to="/login" className="text-teal-700 underline">Back to sign in</Link></p>
+      <p className="text-center text-sm"><Link to="/login" className="text-brand underline">Back to sign in</Link></p>
     </Shell>
   );
 }

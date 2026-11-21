@@ -38,6 +38,8 @@ export const routes: RouteObject[] = [
       { path: 'delete-account', element: <DeleteAccount /> },
       { path: 'blog', element: <BlogIndex /> },
       { path: 'blog/:slug', element: <BlogPost /> },
+      { path: 'jobs', element: lz(() => import('./pages/jobs/Jobs').then((m) => ({ default: m.JobsList }))) },
+      { path: 'jobs/:id', element: lz(() => import('./pages/jobs/Jobs').then((m) => ({ default: m.JobDetailPage }))) },
       { path: 'compare', element: lz(() => import('./pages/Compare')) },
       { path: 'support', element: lz(() => import('./pages/support/Support').then((m) => ({ default: m.SupportList }))) },
       { path: 'support/new', element: lz(() => import('./pages/support/Support').then((m) => ({ default: m.SupportNew }))) },

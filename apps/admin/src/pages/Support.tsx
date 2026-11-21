@@ -60,7 +60,7 @@ export function SupportDetail() {
   const t = q.data;
   return (
     <>
-      <Link to="/support" className="mb-4 inline-flex items-center gap-1 text-sm text-teal-700 hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden />Back to inbox</Link>
+      <Link to="/support" className="mb-4 inline-flex items-center gap-1 text-sm text-brand hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden />Back to inbox</Link>
       {q.isPending ? <div className="space-y-3"><Skeleton className="h-8 w-64" /><Skeleton className="h-40" /></div>
         : q.isError ? <Card><ErrorState error={q.error} onRetry={() => void q.refetch()} /></Card>
         : t && (
@@ -79,7 +79,7 @@ export function SupportDetail() {
                       <p className="whitespace-pre-wrap text-sm">{m.body}</p>
                       {m.attachments.length > 0 && (
                         <ul className="mt-2 space-y-1 text-sm">
-                          {m.attachments.map((a, i) => <li key={a}><a href={a} target="_blank" rel="noopener noreferrer" className="text-teal-700 underline">Attachment {i + 1}<span className="sr-only"> (opens in new tab)</span></a></li>)}
+                          {m.attachments.map((a, i) => <li key={a}><a href={a} target="_blank" rel="noopener noreferrer" className="text-brand underline">Attachment {i + 1}<span className="sr-only"> (opens in new tab)</span></a></li>)}
                         </ul>
                       )}
                     </div>
@@ -99,8 +99,8 @@ export function SupportDetail() {
                     {STATUSES.map((s) => <option key={s} value={s}>{humanize(s)}</option>)}
                   </Select>
                 </div>
-                <div><div className="text-muted">User</div><Link to="/users" className="font-medium text-teal-700 hover:underline">{t.userName}</Link></div>
-                <div><div className="text-muted">Related provider</div>{t.providerId ? <Link to={`/providers?open=${t.providerId}`} className="font-medium text-teal-700 hover:underline">View provider</Link> : <span>None</span>}</div>
+                <div><div className="text-muted">User</div><Link to="/users" className="font-medium text-brand hover:underline">{t.userName}</Link></div>
+                <div><div className="text-muted">Related provider</div>{t.providerId ? <Link to={`/providers?open=${t.providerId}`} className="font-medium text-brand hover:underline">View provider</Link> : <span>None</span>}</div>
               </Card>
             </div>
           </>

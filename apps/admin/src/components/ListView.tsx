@@ -78,7 +78,7 @@ export function ListView({ id, fetcher, columns, filters = [], search, fixedPara
                   {columns.map((c, i) => (
                     <td key={c.header} className={`px-4 py-3 align-middle ${c.className ?? ''}`}>
                       {onRowClick && i === 0 ? (
-                        <button type="button" className="text-left font-medium text-teal-700 hover:underline" onClick={(e) => { e.stopPropagation(); onRowClick(r); }}>{c.cell(r)}</button>
+                        <button type="button" className="text-left font-medium text-brand hover:underline" onClick={(e) => { e.stopPropagation(); onRowClick(r); }}>{c.cell(r)}</button>
                       ) : c.cell(r)}
                     </td>
                   ))}

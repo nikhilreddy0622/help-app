@@ -35,14 +35,14 @@ export function Overview() {
           {cards.map((c) => {
             const inner = (
               <>
-                <div className="text-sm text-muted">{c.label}</div>
-                {c.value === undefined ? <Skeleton className="mt-2 h-8 w-24" /> : <div className={`mt-1 text-2xl font-bold tabular-nums ${c.warn ? 'text-amber-700' : 'text-ink'}`}>{c.value}</div>}
+                <div className="flex items-center gap-2 text-sm font-medium text-subtle">{c.warn && <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />}{c.label}</div>
+                {c.value === undefined ? <Skeleton className="mt-2 h-8 w-24" /> : <div className={`mt-2 text-[28px] font-extrabold leading-none tabular-nums ${c.warn ? 'text-accent-ink' : 'text-navy'}`}>{c.value}</div>}
               </>
             );
             const linkable = c.to && c.module && admin && canView(admin.role, c.module);
             return linkable
-              ? <Link key={c.label} to={c.to!} className="rounded-lg border border-line bg-white p-4 shadow-sm hover:border-teal-700">{inner}</Link>
-              : <div key={c.label} className="rounded-lg border border-line bg-white p-4 shadow-sm">{inner}</div>;
+              ? <Link key={c.label} to={c.to!} className={`rounded-lg border p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition hover:-translate-y-0.5 hover:border-brand hover:shadow-md ${c.warn ? 'border-accent/60 bg-accent-soft' : 'border-line/70 bg-white'}`}>{inner}</Link>
+              : <div key={c.label} className="rounded-lg border border-line/70 bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">{inner}</div>;
           })}
         </div>
       )}
@@ -50,7 +50,7 @@ export function Overview() {
         <Card className="mt-8">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
             <h2 className="font-semibold">Recent activity</h2>
-            <Link to="/audit-logs" className="text-sm text-teal-700 hover:underline">View all</Link>
+            <Link to="/audit-logs" className="text-sm font-semibold text-brand hover:underline">View all</Link>
           </div>
           {act.isPending ? <div className="space-y-3 p-4"><Skeleton className="h-4" /><Skeleton className="h-4" /><Skeleton className="h-4" /></div>
             : act.isError ? <ErrorState error={act.error} onRetry={() => void act.refetch()} />

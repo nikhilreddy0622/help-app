@@ -46,7 +46,7 @@ export function Verifications() {
           { header: 'Type', cell: (r) => { const k = kindOf(get(r, 'type', 'kind', 'documentType', 'category')); return k ? <Badge color={k === 'IDENTITY' ? 'blue' : 'teal'}>{humanize(k)}</Badge> : <Badge>{str(get(r, 'type', 'kind'))}</Badge>; } },
           col.name('Provider', 'provider.displayName', 'providerName', 'displayName', 'name'),
           col.text('Document', 'documentName', 'docType', 'label', 'title'),
-          { header: 'File', cell: (r) => { const u = get(r, 'documentUrl', 'fileUrl', 'url', 'document.url', 'previewUrl'); return typeof u === 'string' ? <a href={u} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-teal-700 underline">Preview<ExternalLink className="h-3 w-3" aria-hidden /><span className="sr-only"> (opens in new tab)</span></a> : <span className="text-muted">-</span>; } },
+          { header: 'File', cell: (r) => { const u = get(r, 'documentUrl', 'fileUrl', 'url', 'document.url', 'previewUrl'); return typeof u === 'string' ? <a href={u} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-brand underline">Preview<ExternalLink className="h-3 w-3" aria-hidden /><span className="sr-only"> (opens in new tab)</span></a> : <span className="text-muted">-</span>; } },
           col.status(), col.date('Submitted'),
         ]}
         actions={(r) => {
