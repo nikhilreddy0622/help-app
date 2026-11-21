@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { tileColor } from '@help/ui-tokens';
 import { useApi } from '../lib/api';
 import { categoriesQuery, searchInfiniteQuery } from '../lib/queries';
 import { cityBySlug, CITIES } from '../lib/cities';
@@ -30,6 +31,7 @@ export default function CategoryCity() {
     );
   }
   const name = cat.name;
+  const parent = cats.data?.find((c) => c.id === cat.parentId);
   const path = `/c/${cat.slug}/${city.slug}`;
   return (
     <div className="container-page py-6 md:py-8">
@@ -39,9 +41,11 @@ export default function CategoryCity() {
         path={path}
         jsonLd={[...(items.length ? [listJsonLd(`${name} in ${city.name}`, items, origin)] : []), breadcrumbJsonLd([{ name: 'Home', path: '/' }, { name, path: `/search?category=${cat.slug}` }, { name: city.name, path }], origin)]}
       />
-      <nav aria-label="Breadcrumb" className="mb-3 text-sm text-subtle"><Link to="/">Home</Link> / <span>{name}</span> / <span aria-current="page">{city.name}</span></nav>
-      <h1 className="text-3xl font-bold tracking-tight">{name} in {city.name}</h1>
+      <div className="rounded-xl p-6 md:p-8" style={{ background: tileColor(cat.slug).bg }}>
+      <nav aria-label="Breadcrumb" className="mb-3 text-sm font-semibold" style={{ color: tileColor(cat.slug).fg }}><Link to="/" style={{ color: 'inherit' }}>Home</Link> / {parent ? <><Link to={`/services/${parent.slug}`} style={{ color: 'inherit' }}>{parent.name}</Link> / </> : null}<span aria-current="page">{name}</span></nav>
+      <h1 className="text-3xl md:text-5xl">{name} in {city.name}</h1>
       <p className="mt-2 max-w-2xl text-subtle">Compare verified {name.toLowerCase()} within 25 km of {city.name}. Reviews come only from customers who contacted the professional through help, and phone numbers are shown only on request.</p>
+      </div>
       {(() => {
         const subs = (cats.data ?? []).filter((c) => c.parentId === cat.id);
         return subs.length > 0 ? (
@@ -50,7 +54,7 @@ export default function CategoryCity() {
           </ul>
         ) : null;
       })()}
-      <div className="mt-6"><ProviderResults query={query} items={items} cols="lg:grid-cols-3" /></div>
+      <div className="mt-6"><ProviderResults query={query} items={items} cols="xl:grid-cols-3" /></div>
       <section className="mt-12"><SectionTitle>{name} in other cities</SectionTitle>
         <ul className="flex flex-wrap gap-2">{CITIES.filter((c) => c.slug !== city.slug).map((c) => <li key={c.slug}><Link className="inline-flex h-9 items-center rounded-full border border-line-strong bg-white px-4 text-sm font-medium" to={`/c/${cat.slug}/${c.slug}`}>{c.name}</Link></li>)}</ul>
       </section>

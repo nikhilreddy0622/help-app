@@ -1,40 +1,57 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Activity, ArrowRight, MessageSquare, Scale, Search, ShieldCheck, Star, Handshake, UserPlus, MapPin, Wallet, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Car, Droplets, Hammer, MapPin, Scissors, Search, ShieldCheck, Snowflake, Sparkles, UserPlus, Wallet, Zap, type LucideIcon } from 'lucide-react';
+import type { Category } from '@help/types';
+import { tileColor } from '@help/ui-tokens';
 import { useApi } from '../lib/api';
-import { categoriesQuery } from '../lib/queries';
+import { categoriesQuery, homeQuery } from '../lib/queries';
 import { useUserLocation } from '../state/LocationContext';
 import { Seo } from '../components/ui/Seo';
-import { LinkButton, Button } from '../components/ui/Button';
 import { QueryBoundary, Skeleton } from '../components/ui/States';
 import { LocationPicker } from '../components/provider/LocationPicker';
 import { CategoryTiles } from '../components/provider/CategoryTiles';
+import { ProviderCardView } from '../components/provider/ProviderCard';
 import { POSTS } from '../content/blog';
 import { PostCard } from './blog/Blog';
 import { useSite } from '../state/SiteContext';
 
 const HOME_FAQ = [
-  { q: 'Is help free for customers?', a: 'Yes. Searching, comparing and contacting professionals is free. You pay the professional directly for their work — help takes no commission.' },
-  { q: 'How do I contact a professional?', a: 'Open their profile and send a message in the app, or sign in and tap Show phone number to call them yourself.' },
-  { q: 'Are professionals verified?', a: 'Each profile shows exactly what was checked — mobile number, ID and qualification — as separate badges, so you know what each one means.' },
-  { q: 'Which services can I find?', a: 'Home services like electricians, plumbers and cleaners, tutors, drivers, cooks, photographers, mechanics, event services and more.' },
-  { q: 'I am a professional. How do I join?', a: 'Create a free profile in a few minutes. When you are ready to be found, choose a simple subscription. You keep every rupee you earn from your jobs.' },
+  { q: 'Is help free for customers?', a: 'Yes. Searching, comparing and contacting professionals is free. You pay the professional directly for their work. help takes no commission.' },
+  { q: 'How do I contact a professional?', a: 'Open their profile and send a message, or sign in and tap Show phone number to call them yourself.' },
+  { q: 'Are professionals verified?', a: 'Each profile shows exactly what was checked (mobile number, ID and qualification) as separate badges, so you know what each one means.' },
+  { q: 'Which services can I find?', a: 'Over 450 services: electricians, plumbers and cleaners, tutors, drivers, cooks, beauticians, photographers, mechanics, event services and more.' },
+  { q: 'I am a professional. How do I join?', a: 'Create a free profile in four short steps. When you are ready to be found, choose a simple subscription. You keep every rupee you earn.' },
 ];
 
-function Steps({ title, steps }: { title: string; steps: { icon: React.ReactNode; title: string; text: string }[] }) {
+const POPULAR: [string, string, LucideIcon][] = [
+  ['Electrician', 'Electrician', Zap], ['Plumber', 'Plumber', Droplets], ['AC repair and servicing', 'AC repair', Snowflake], ['House cleaning', 'Cleaning', Sparkles],
+  ['Home tutor', 'Tutor', BookOpen], ['Carpenter', 'Carpenter', Hammer], ['Beautician', 'Beautician', Scissors], ['Personal driver', 'Driver', Car],
+];
+
+const BANNERS = [
+  { title: 'Free for customers', body: 'Chat or call pros directly. No commission, no middleman.', cls: 'bg-navy text-white', sub: 'text-[#C9D3E6]', icon: Wallet, iconCls: 'bg-white/10 text-accent', to: '/search' },
+  { title: 'See who you are hiring', body: 'Real reviews, ID and qualification badges on every profile.', cls: 'bg-[#FFF1D6] text-[#4A3200]', sub: 'text-[#7A5A14]', icon: ShieldCheck, iconCls: 'bg-white/70 text-[#4A3200]', to: '/search' },
+  { title: 'Are you a professional?', body: 'Get found by customers near you. Set up in 4 steps.', cls: 'bg-[#E3F4EF] text-[#063F38]', sub: 'text-[#2E6B62]', icon: UserPlus, iconCls: 'bg-white/70 text-[#063F38]', to: '/for-professionals' },
+];
+
+function Popular({ cats, citySlug }: { cats: Category[]; citySlug: string }) {
+  const list = POPULAR.map(([n, short, I]) => ({ c: cats.find((x) => x.parentId && x.name === n), short, I })).filter((x) => x.c);
+  if (!list.length) return null;
   return (
-    <div className="card p-6">
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <ol className="mt-5 space-y-5">
-        {steps.map((s, i) => (
-          <li key={s.title} className="flex gap-4">
-            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-teal-tint text-teal">{s.icon}</span>
-            <div><p className="font-semibold text-navy">{i + 1}. {s.title}</p><p className="mt-0.5 text-sm text-subtle">{s.text}</p></div>
+    <ul className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] md:grid md:grid-cols-8 md:overflow-visible">
+      {list.map(({ c, short, I }) => {
+        const t = tileColor(c!.slug);
+        return (
+          <li key={c!.id} className="flex-none">
+            <Link to={`/c/${c!.slug}/${citySlug}`} className="tile-press flex w-[72px] flex-col items-center gap-2 text-center md:w-auto" style={{ color: '#121722' }}>
+              <span className="flex h-16 w-16 items-center justify-center rounded-full md:h-20 md:w-20" style={{ background: t.bg, color: t.fg }}><I className="h-7 w-7 md:h-8 md:w-8" strokeWidth={2} aria-hidden /></span>
+              <span className="text-xs font-semibold md:text-sm">{short}</span>
+            </Link>
           </li>
-        ))}
-      </ol>
-    </div>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -44,19 +61,16 @@ export default function Landing() {
   const { location } = useUserLocation();
   const [q, setQ] = useState('');
   const cats = useQuery(categoriesQuery(api));
+  const home = useQuery(homeQuery(api, location.lat, location.lng));
   const { origin } = useSite();
   const siteLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@graph': [
       { '@type': 'Organization', '@id': `${origin}/#org`, name: 'help', url: origin, logo: `${origin}/icon-512.png` },
-      { '@type': 'WebSite', '@id': `${origin}/#site`, name: 'help', url: origin, publisher: { '@id': `${origin}/#org` },
-        potentialAction: { '@type': 'SearchAction', target: `${origin}/search?q={query}`, 'query-input': 'required name=query' } },
+      { '@type': 'WebSite', '@id': `${origin}/#site`, name: 'help', url: origin, publisher: { '@id': `${origin}/#org` }, potentialAction: { '@type': 'SearchAction', target: `${origin}/search?q={query}`, 'query-input': 'required name=query' } },
     ],
   });
-  const faqLd = JSON.stringify({
-    '@context': 'https://schema.org', '@type': 'FAQPage',
-    mainEntity: HOME_FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
-  });
+  const faqLd = JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: HOME_FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) });
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -67,80 +81,91 @@ export default function Landing() {
 
   return (
     <>
-      <Seo title="Find trusted local professionals near you" description="Discover verified electricians, tutors, photographers and more near you. Compare ratings, prices and availability, then chat or call. Free for customers." path="/" jsonLd={[siteLd, faqLd]} />
-      <section className="container-page pb-2 pt-10 md:pt-16">
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Someone nearby can help with that</h1>
-          <p className="mt-3 text-base text-subtle md:text-lg">Electricians, tutors, cooks, mechanics — real people around you. See their reviews, then message or call them yourself. No commission, no middleman.</p>
-          <form onSubmit={submit} className="mt-8 flex flex-col gap-3 rounded-[20px] border border-line bg-white p-3 text-left shadow-md md:flex-row md:items-center" role="search">
-            <div className="flex flex-1 items-center gap-3 px-2">
-              <Search className="h-6 w-6 flex-none text-teal" aria-hidden />
-              <div className="min-w-0 flex-1">
-                <label htmlFor="hero-q" className="sr-only">Search for any service</label>
-                <input id="hero-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search for any service" className="h-9 w-full min-w-0 border-0 bg-transparent text-base font-medium placeholder:text-ink focus-visible:ring-0 focus-visible:ring-offset-0" />
-                <p className="text-xs text-muted">Electrician, tutor, photographer&hellip;</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 md:w-64 md:border-l md:border-line md:pl-3"><MapPin className="hidden h-5 w-5 flex-none text-teal md:block" aria-hidden /><LocationPicker className="flex-1" /></div>
-            <Button type="submit" size="lg" className="rounded-[14px]">Search</Button>
+      <Seo title="Find trusted local professionals near you" description="Find electricians, plumbers, tutors, beauticians and 450+ other services near you. Compare ratings, prices and availability, then chat or call. Free for customers." path="/" jsonLd={[siteLd, faqLd]} />
+
+      <section className="rounded-b-xl bg-brand">
+        <div className="container-page pb-10 pt-8 md:pb-14 md:pt-12">
+          <h1 className="max-w-3xl text-3xl text-white md:text-5xl">Trusted local professionals, right around you</h1>
+          <form onSubmit={submit} role="search" className="mt-6 flex flex-col gap-2 rounded-lg bg-white p-2 shadow-lift md:flex-row md:items-center">
+            <label className="flex flex-1 items-center gap-3 px-3">
+              <Search className="h-6 w-6 flex-none text-brand" strokeWidth={2.5} aria-hidden />
+              <span className="sr-only">Search for any service</span>
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search “electrician”, “tutor”, “cook”" className="h-12 w-full min-w-0 border-0 bg-transparent text-base font-medium focus-visible:ring-0 focus-visible:ring-offset-0" />
+            </label>
+            <div className="flex items-center gap-2 border-t border-divider px-2 pt-2 md:w-64 md:border-l md:border-t-0 md:pt-0"><MapPin className="h-5 w-5 flex-none text-brand" aria-hidden /><LocationPicker className="flex-1" /></div>
+            <button type="submit" className="h-12 rounded-md bg-accent px-6 font-extrabold text-accent-ink transition-transform active:scale-[0.98]">Search</button>
           </form>
-          <div className="mt-3 flex flex-wrap gap-3">
-            <Link to="/search" className="inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm font-semibold text-navy">Browse all services<ArrowRight className="h-4 w-4" aria-hidden /></Link>
-          </div>
         </div>
       </section>
 
-      <section className="container-page pt-10" aria-label="Categories">
-        <QueryBoundary query={cats} skeleton={<ul className="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">{Array.from({ length: 12 }, (_, i) => <li key={i}><Skeleton className="h-[104px] rounded-[16px]" /></li>)}</ul>} isEmpty={(d) => d.length === 0} empty={<p className="text-center text-sm text-subtle">Categories will appear here soon.</p>}>
-          {(list) => <CategoryTiles groups={list.filter((c) => !c.parentId)} citySlug={location.citySlug} />}
+      <section className="container-page mt-8" aria-label="Highlights">
+        <ul className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] md:grid md:grid-cols-3 md:overflow-visible">
+          {BANNERS.map((b) => (
+            <li key={b.title} className="w-[85%] flex-none md:w-auto">
+              <Link to={b.to} className={`tile-press flex h-full items-center gap-4 rounded-lg p-5 ${b.cls}`}>
+                <span className="flex-1"><span className="block text-lg font-extrabold">{b.title}</span><span className={`mt-1 block text-sm ${b.sub}`}>{b.body}</span></span>
+                <span className={`flex h-16 w-16 flex-none items-center justify-center rounded-full ${b.iconCls}`}><b.icon className="h-8 w-8" aria-hidden /></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {cats.data && (
+        <section className="container-page mt-10" aria-labelledby="popular">
+          <h2 id="popular" className="mb-5 text-2xl md:text-3xl">What do you need today?</h2>
+          <Popular cats={cats.data} citySlug={location.citySlug} />
+        </section>
+      )}
+
+      <section className="container-page mt-10" aria-labelledby="cats">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <h2 id="cats" className="text-2xl md:text-3xl">All categories</h2>
+          <Link to="/services" className="inline-flex items-center gap-1 text-sm font-bold">See all<ArrowRight className="h-4 w-4" aria-hidden /></Link>
+        </div>
+        <QueryBoundary query={cats} skeleton={<ul className="grid grid-cols-4 gap-3 lg:grid-cols-8">{Array.from({ length: 16 }, (_, i) => <li key={i}><Skeleton className="aspect-square rounded-lg" /></li>)}</ul>} isEmpty={(d) => d.length === 0} empty={<p className="text-sm text-subtle">Categories will appear here soon.</p>}>
+          {(list) => <CategoryTiles groups={list.filter((c) => !c.parentId)} />}
         </QueryBoundary>
       </section>
 
-      <section className="container-page pt-14" aria-labelledby="how">
-        <h2 id="how" className="mb-6 text-2xl font-bold tracking-tight">How it works</h2>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Steps title="For customers" steps={[
-            { icon: <Search className="h-5 w-5" />, title: 'Search', text: 'Find professionals near you by service, distance, rating and who is available now.' },
-            { icon: <Scale className="h-5 w-5" />, title: 'Compare', text: 'Put up to three side by side: ratings, prices, status and verification.' },
-            { icon: <MessageSquare className="h-5 w-5" />, title: 'Chat or call directly', text: 'Message in the app, or show their phone number and call. No middleman fees.' },
-          ]} />
-          <Steps title="For professionals" steps={[
-            { icon: <UserPlus className="h-5 w-5" />, title: 'List your profile', text: 'Add services, prices and your best work. Drafts are free.' },
-            { icon: <Activity className="h-5 w-5" />, title: 'Set your status', text: 'Available, Busy or Away, so customers know when to reach you.' },
-            { icon: <Wallet className="h-5 w-5" />, title: 'Get contacted', text: 'Customers chat or call you directly. Keep every rupee you earn.' },
-          ]} />
-        </div>
-      </section>
+      {home.data && home.data.topRated.length > 0 && (
+        <section className="container-page mt-12" aria-labelledby="top">
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <h2 id="top" className="text-2xl md:text-3xl">Top rated near {location.label.split(',')[0]}</h2>
+            <Link to="/search?sort=rating" className="inline-flex items-center gap-1 text-sm font-bold">See all<ArrowRight className="h-4 w-4" aria-hidden /></Link>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{home.data.topRated.slice(0, 6).map((p) => <ProviderCardView key={p.id} p={p} />)}</div>
+        </section>
+      )}
 
-      <section className="container-page pt-14">
-        <div className="rounded-xl bg-navy p-8 md:p-12">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-xl">
-              <h2 className="text-2xl font-bold" style={{ color: '#fff' }}>Are you a professional?</h2>
-              <p className="mt-2 text-[#CBD5E1]">Reach customers in your neighbourhood. No commissions on your jobs. One simple subscription.</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <LinkButton to="/pro/onboarding" size="lg" variant="secondary">Create your profile</LinkButton>
-              <Link to="/for-professionals" className="inline-flex h-[52px] items-center px-2 font-semibold" style={{ color: '#fff' }}>See pricing</Link>
-            </div>
+      <section className="container-page mt-12">
+        <div className="flex flex-col gap-6 rounded-xl bg-navy p-8 md:flex-row md:items-center md:justify-between md:p-12">
+          <div className="max-w-xl">
+            <span className="inline-flex h-7 items-center rounded-full bg-accent px-3 text-xs font-extrabold text-accent-ink">FOR PROFESSIONALS</span>
+            <h2 className="mt-3 text-2xl text-white md:text-3xl">Grow your work on help</h2>
+            <p className="mt-2 text-[#C9D3E6]">Reach customers in your neighbourhood. No commission on your jobs. Live in 4 short steps.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/pro/onboarding" className="inline-flex h-[52px] items-center rounded-md bg-accent px-6 font-extrabold text-accent-ink">Create your profile</Link>
+            <Link to="/for-professionals" className="inline-flex h-[52px] items-center px-2 font-bold" style={{ color: '#fff' }}>See pricing</Link>
           </div>
         </div>
       </section>
 
-      <section className="container-page pt-14" aria-labelledby="blog">
+      <section className="container-page mt-12" aria-labelledby="blog">
         <div className="mb-5 flex items-end justify-between gap-4">
-          <h2 id="blog" className="text-2xl font-bold tracking-tight">Guides and tips</h2>
-          <Link to="/blog" className="inline-flex items-center gap-1 text-sm font-semibold text-teal-800">All articles<ArrowRight className="h-4 w-4" aria-hidden /></Link>
+          <h2 id="blog" className="text-2xl md:text-3xl">Guides and tips</h2>
+          <Link to="/blog" className="inline-flex items-center gap-1 text-sm font-bold">All articles<ArrowRight className="h-4 w-4" aria-hidden /></Link>
         </div>
         <ul className="grid gap-4 md:grid-cols-3">{POSTS.slice(0, 3).map((p) => <PostCard key={p.slug} p={p} />)}</ul>
       </section>
 
-      <section className="container-page pt-14" aria-labelledby="faq">
-        <h2 id="faq" className="mb-5 text-2xl font-bold tracking-tight">Common questions</h2>
+      <section className="container-page mt-12" aria-labelledby="faq">
+        <h2 id="faq" className="mb-5 text-2xl md:text-3xl">Common questions</h2>
         <div className="card divide-y divide-divider">
           {HOME_FAQ.map((f) => (
             <details key={f.q} className="group px-5 py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-navy">{f.q}<span aria-hidden className="text-xl leading-none text-teal transition-transform group-open:rotate-45">+</span></summary>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-ink">{f.q}<span aria-hidden className="text-2xl leading-none text-brand transition-transform group-open:rotate-45">+</span></summary>
               <p className="mt-2 text-subtle">{f.a}</p>
             </details>
           ))}

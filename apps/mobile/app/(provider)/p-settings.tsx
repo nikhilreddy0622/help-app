@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import { useSession } from '@/lib/session';
 import { colors } from '@/lib/theme';
 
 const chev = <ChevronRight size={18} color={colors.textMuted} />;
-const ic = (I: typeof Bell) => <I size={20} color={colors.navy} />;
+const ic = (I: typeof Bell) => <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: colors.surfaceMuted, alignItems: 'center', justifyContent: 'center' }}><I size={18} color={colors.text} /></View>;
 
 export default function ProviderSettings() {
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function ProviderSettings() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
-        <T v="title">Settings</T>
+        <T v="display" style={{ fontSize: 26, lineHeight: 32, paddingTop: 4 }}>Settings</T>
         <Group>
           <Row icon={ic(RefreshCw)} label="Subscription and plan" value={planValue} right={chev} onPress={() => router.push('/subscription')} />
           <Row icon={ic(Receipt)} label="Payment history" right={chev} onPress={() => router.push('/payments')} />

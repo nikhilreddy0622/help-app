@@ -7,7 +7,7 @@ import { renderTemplate } from './templates';
 export interface QueueEmailInput { to: string; template: string; dedupeKey: string; vars?: Record<string, unknown> }
 export const MAX_EMAIL_ATTEMPTS = 5;
 
-export const smtpConfigured = () => !!env.SMTP_HOST;
+export const smtpConfigured = () => !!env.SMTP_HOST && env.NODE_ENV !== 'test';
 
 let transport: Transporter | null = null;
 function getTransport(): Transporter {

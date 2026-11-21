@@ -19,15 +19,16 @@ export async function recalcRating(tx: Prisma.TransactionClient, providerId: str
   });
 }
 
-/** A customer may review once, after the provider replied to them in chat. */
+/** A customer may review once, after contacting the provider (chat or phone reveal). */
 async function eligibility(userId: string, providerId: string) {
   const provider = await prisma.providerProfile.findFirst({ where: { id: providerId, deletedAt: null }, select: { id: true, userId: true } });
   if (!provider) throw notFound('Provider');
-  const [convo, existing] = await Promise.all([
-    prisma.conversation.findUnique({ where: { customerId_providerId: { customerId: userId, providerId } }, select: { providerFirstReplyAt: true } }),
+  const [convo, revealed, existing] = await Promise.all([
+    prisma.conversation.findUnique({ where: { customerId_providerId: { customerId: userId, providerId } }, select: { id: true } }),
+    prisma.contactEvent.findFirst({ where: { providerId, userId, kind: 'PHONE_REVEALED' }, select: { id: true } }),
     prisma.review.findUnique({ where: { authorId_providerId: { authorId: userId, providerId } }, select: { id: true } }),
   ]);
-  const r = canReviewProvider({ isSelf: provider.userId === userId, providerReplied: !!convo?.providerFirstReplyAt, alreadyReviewed: !!existing });
+  const r = canReviewProvider({ isSelf: provider.userId === userId, contacted: !!convo || !!revealed, alreadyReviewed: !!existing });
   return { provider, result: r };
 }
 
@@ -42,7 +43,7 @@ reviewsRouter.use(requireUser);
 reviewsRouter.post('/', ah(async (req, res) => {
   const b = parse(CreateReviewSchema, req.body);
   const { provider, result } = await eligibility(req.user!.id, b.providerId);
-  if (!result.ok) throw new AppError(409, 'REVIEW_NOT_ALLOWED', 'You can review a professional once, after they have replied to you in chat', { reason: result.reason });
+  if (!result.ok) throw new AppError(409, 'REVIEW_NOT_ALLOWED', 'You can review a professional once, after you have chatted with them or viewed their number', { reason: result.reason });
   const author = await prisma.user.findUniqueOrThrow({ where: { id: req.user!.id }, select: { name: true, avatarUrl: true } });
   let review;
   try {

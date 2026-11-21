@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Bell, ChevronLeft } from 'lucide-react-native';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { colors } from '@/lib/theme';
+import { colors, shadowSm } from '@/lib/theme';
 import { useRealtime } from '@/lib/realtime';
 import { T } from './ui/Text';
 import { ErrorState } from './ui/ErrorState';
@@ -13,7 +13,7 @@ export function IconButton({ icon, label, onPress, bordered, badge }: { icon: Re
   return (
     <Pressable
       onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
-      style={{ width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: bordered ? 1 : 0, borderColor: colors.border, backgroundColor: bordered ? colors.white : 'transparent' }}
+      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: bordered ? 1 : 0, borderColor: colors.border, backgroundColor: pressed ? colors.surfaceMuted : bordered ? colors.white : 'transparent' })}
     >
       {icon}
       {badge ? <CountDot n={badge} /> : null}
@@ -23,7 +23,7 @@ export function IconButton({ icon, label, onPress, bordered, badge }: { icon: Re
 
 export function CountDot({ n }: { n: number }) {
   return (
-    <View style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.teal700, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 2, borderColor: colors.bg }}>
+    <View style={{ position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 2, borderColor: colors.white }}>
       <T v="micro" color="#fff" style={{ fontSize: 10, lineHeight: 12 }}>{n > 99 ? '99+' : n}</T>
     </View>
   );
@@ -45,10 +45,10 @@ export function BellButton() {
 export function Header({ title, subtitle, back = true, right, onBack }: { title?: string; subtitle?: string; back?: boolean; right?: React.ReactNode; onBack?: () => void }) {
   const router = useRouter();
   return (
-    <View style={{ minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+    <View style={{ minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, backgroundColor: colors.bg }}>
       {back ? <IconButton label="Back" icon={<ChevronLeft size={24} color={colors.navy} />} onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))} /> : <View style={{ width: 8 }} />}
       <View style={{ flex: 1, paddingVertical: 8 }}>
-        {title ? <T v="heading" numberOfLines={1}>{title}</T> : null}
+        {title ? <T v="heading" weight={800} numberOfLines={1} style={{ fontSize: 18 }}>{title}</T> : null}
         {subtitle ? <T v="caption" numberOfLines={1}>{subtitle}</T> : null}
       </View>
       {right}
@@ -82,7 +82,7 @@ export function Screen({ title, subtitle, back = true, right, header, scroll = t
   );
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top', 'left', 'right']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : keyboard ? 'height' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         {header ?? (noHeader ? null : <Header title={title} subtitle={subtitle} back={back} right={right} onBack={onBack} />)}
         {body}
         {footer ? (
@@ -105,8 +105,8 @@ export function QueryBoundary<T2>({ q, skeleton, children }: { q: UseQueryResult
 export const Section = ({ title, action, onAction, children }: { title: string; action?: string; onAction?: () => void; children: React.ReactNode }) => (
   <View style={{ gap: 12 }}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-      <T v="heading">{title}</T>
-      {action ? <Pressable onPress={onAction} accessibilityRole="button" hitSlop={8}><T v="label" weight={600} color={colors.teal700}>{action}</T></Pressable> : null}
+      <T v="title" style={{ fontSize: 19 }}>{title}</T>
+      {action ? <Pressable onPress={onAction} accessibilityRole="button" hitSlop={10}><T v="label" weight={700} color={colors.brand}>{action} ›</T></Pressable> : null}
     </View>
     {children}
   </View>
@@ -116,7 +116,7 @@ export function Row({ icon, label, value, onPress, danger, right }: { icon?: Rea
   return (
     <Pressable
       onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined} accessibilityLabel={value ? `${label}, ${value}` : label}
-      style={({ pressed }) => ({ minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, backgroundColor: pressed ? colors.surfaceMuted : colors.white })}
+      style={({ pressed }) => ({ minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, backgroundColor: pressed ? colors.surfaceMuted : colors.white })}
     >
       {icon}
       <T v="body" style={{ flex: 1 }} color={danger ? colors.danger : colors.text}>{label}</T>
@@ -129,13 +129,26 @@ export function Row({ icon, label, value, onPress, danger, right }: { icon?: Rea
 export function Group({ children }: { children: React.ReactNode }) {
   const items = React.Children.toArray(children);
   return (
-    <View style={{ backgroundColor: colors.white, borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
+    <View style={[{ backgroundColor: colors.white, borderRadius: 20, overflow: 'hidden' }, shadowSm]}>
       {items.map((c, i) => (
         <View key={i}>
           {i > 0 ? <View style={{ height: 1, backgroundColor: colors.divider, marginLeft: 16 }} /> : null}
           {c}
         </View>
       ))}
+    </View>
+  );
+}
+
+/** Big bold title for tab screens (Messages, Jobs, Profile…). */
+export function TabHeader({ title, subtitle, right }: { title: string; subtitle?: string; right?: React.ReactNode }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12 }}>
+      <View style={{ flex: 1 }}>
+        <T v="display" numberOfLines={1} style={{ fontSize: 26, lineHeight: 32 }}>{title}</T>
+        {subtitle ? <T v="caption" numberOfLines={1}>{subtitle}</T> : null}
+      </View>
+      {right}
     </View>
   );
 }

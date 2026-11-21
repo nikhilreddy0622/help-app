@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import { Tabs, Redirect } from 'expo-router';
 import { colors } from '@/lib/theme';
 import { useSession, type Mode } from '@/lib/session';
@@ -15,18 +16,28 @@ export function ModeTabs({ mode, tabs, redirect, hidden = [] }: { mode: Mode; ta
       backBehavior="initialRoute"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.teal700,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: { fontFamily: 'Inter_500Medium', fontSize: 11 },
-        tabBarStyle: { backgroundColor: colors.white, borderTopColor: colors.border, minHeight: 60 },
-        tabBarBadgeStyle: { backgroundColor: colors.teal700, color: '#fff', fontSize: 10 },
+        animation: 'none',
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: '#8A909A',
+        tabBarLabelStyle: { fontFamily: 'Inter_600SemiBold', fontSize: 11, marginTop: 2 },
+        tabBarStyle: { backgroundColor: colors.white, borderTopWidth: 0, minHeight: 64, paddingTop: 6, elevation: 16, shadowColor: '#0B1220', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: -2 } },
+        tabBarBadgeStyle: { backgroundColor: colors.danger, color: '#fff', fontSize: 10 },
       }}
     >
       {tabs.map((t) => (
         <Tabs.Screen
           key={t.name}
           name={t.name}
-          options={{ title: t.title, tabBarIcon: ({ color, size }) => t.icon({ color: String(color), size: Math.min(size, 24) }), tabBarBadge: t.badge ? t.badge : undefined, tabBarAccessibilityLabel: t.badge ? `${t.title}, ${t.badge} new` : t.title }}
+          options={{
+            title: t.title,
+            tabBarIcon: ({ color, size, focused }) => (
+              <View style={{ width: 48, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: focused ? colors.tealTint : 'transparent' }}>
+                {t.icon({ color: String(color), size: Math.min(size, 22) })}
+              </View>
+            ),
+            tabBarBadge: t.badge ? t.badge : undefined,
+            tabBarAccessibilityLabel: t.badge ? `${t.title}, ${t.badge} new` : t.title,
+          }}
         />
       ))}
       {hidden.map((name) => (

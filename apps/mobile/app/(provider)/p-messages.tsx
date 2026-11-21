@@ -10,7 +10,7 @@ export default function ProviderMessages() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right']}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingBottom: 8 }}>
-        <View><T v="title">Messages</T><T v="caption">Customers who contacted you</T></View>
+        <View><T v="display" style={{ fontSize: 26, lineHeight: 32 }}>Messages</T><T v="caption">Customers who contacted you</T></View>
         <BellButton />
       </View>
       <ConversationList role="provider" />

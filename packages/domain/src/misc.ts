@@ -111,3 +111,16 @@ export const ANDROID_CHANNELS = [
 export function androidChannelFor(category: string): string {
   return ANDROID_CHANNELS.find((c) => (c.cats as readonly string[]).includes(category))?.id ?? 'messages';
 }
+
+/**
+ * Public, approximate location (~1 km): snapped to a 0.01° grid plus a small stable offset per provider,
+ * so pins don't stack. Exact coordinates and addresses are never exposed.
+ */
+export function approxArea(id: string, lat: number | null, lng: number | null): { lat: number; lng: number } | null {
+  if (lat == null || lng == null) return null;
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  const jitter = (n: number) => ((n % 1000) / 1000 - 0.5) * 0.006;
+  const snap = (v: number) => Math.round(v * 100) / 100;
+  return { lat: Number((snap(lat) + jitter(h)).toFixed(4)), lng: Number((snap(lng) + jitter(h >>> 10)).toFixed(4)) };
+}

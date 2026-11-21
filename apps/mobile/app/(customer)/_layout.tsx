@@ -14,7 +14,6 @@ export default function CustomerTabs() {
         { name: 'jobs', title: 'Jobs', icon: (p) => <Briefcase {...p} /> },
         { name: 'profile', title: 'Profile', icon: (p) => <UserRound {...p} /> },
       ]}
-      hidden={['messages', 'saved']}
     />
   );
 }

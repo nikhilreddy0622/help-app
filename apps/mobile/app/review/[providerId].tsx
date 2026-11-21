@@ -36,18 +36,18 @@ export default function WriteReview() {
       footer={elig.data?.canReview ? <>{error ? <T v="caption" color={colors.danger} align="center">{error}</T> : null}<Button size="lg" title="Post review" loading={submit.isPending} onPress={() => { setError(null); submit.mutate(); }} /></> : undefined}>
       <QueryBoundary q={elig} skeleton={<ListSkeleton count={1} />}>
         {(e) => !e.canReview ? (
-          <T color={colors.textMuted}>{e.reason === 'ALREADY_REVIEWED' ? 'You have already reviewed this professional.' : e.reason === 'SIGNED_OUT' ? 'Sign in to write a review.' : e.reason === 'SELF' ? 'You cannot review yourself.' : 'You can review after chatting with this professional and getting a reply.'}</T>
+          <T color={colors.textMuted}>{e.reason === 'ALREADY_REVIEWED' ? 'You have already reviewed this professional.' : e.reason === 'SIGNED_OUT' ? 'Sign in to write a review.' : e.reason === 'SELF' ? 'You cannot review yourself.' : 'Chat with this professional or view their number first, then you can rate them.'}</T>
         ) : (
           <>
             <View style={{ gap: 8, alignItems: 'center' }}>
               <T v="heading">How was your experience?</T>
               <StarInput label="Overall" value={overall} onChange={setOverall} size={36} />
             </View>
-            <View style={{ gap: 4 }}>
-              {SUBS.map(([k, l]) => (
-                <View key={k} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <T>{l}</T>
-                  <StarInput label={l} size={22} value={subs[k]} onChange={(n) => setSubs((s) => ({ ...s, [k]: n }))} />
+            <View style={{ backgroundColor: colors.white, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 6 }}>
+              {SUBS.map(([k, l], i) => (
+                <View key={k} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 48, borderTopWidth: i ? 1 : 0, borderTopColor: colors.divider }}>
+                  <T weight={600} style={{ flex: 1 }} numberOfLines={1}>{l}</T>
+                  <StarInput label={l} size={20} value={subs[k]} onChange={(n) => setSubs((s) => ({ ...s, [k]: n }))} />
                 </View>
               ))}
             </View>

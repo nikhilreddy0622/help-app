@@ -17,6 +17,8 @@ export default defineConfig({
       RAZORPAY_KEY_ID: 'rzp_test_x',
       RAZORPAY_KEY_SECRET: 'rzp_secret_x',
       OTP_PROVIDER: 'console',
+      // Never send real email from tests (fake addresses bounce back to the sender inbox).
+      SMTP_HOST: '',
       ADMIN_WEB_URL: 'http://localhost:5174',
     },
   },

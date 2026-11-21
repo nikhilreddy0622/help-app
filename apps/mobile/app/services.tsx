@@ -38,7 +38,7 @@ export default function AllServices() {
                   {g.providerCount != null ? <T v="caption">{g.providerCount}</T> : null}
                 </Pressable>
                 {subs.map((s) => (
-                  <Pressable key={s.id} onPress={() => router.push({ pathname: '/explore', params: { categoryId: s.id, categoryName: s.name } })} accessibilityRole="button" style={({ pressed }) => ({ minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingLeft: 50, paddingRight: 16, borderTopWidth: 1, borderTopColor: colors.divider, backgroundColor: pressed ? colors.surfaceMuted : 'transparent' })}>
+                  <Pressable key={s.id} onPress={() => router.push({ pathname: '/results', params: { categoryId: s.id, categoryName: s.name } })} accessibilityRole="button" style={({ pressed }) => ({ minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingLeft: 50, paddingRight: 16, borderTopWidth: 1, borderTopColor: colors.divider, backgroundColor: pressed ? colors.surfaceMuted : 'transparent' })}>
                     <T style={{ flex: 1 }} color={colors.textSubtle}>{s.name}</T>
                     {s.providerCount != null ? <T v="caption">{s.providerCount}</T> : null}
                   </Pressable>

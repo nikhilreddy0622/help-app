@@ -23,7 +23,7 @@ export interface Me {
   linked: { google: boolean; phone: boolean; email: boolean };
 }
 
-export interface Category { id: string; name: string; slug: string; icon: string | null; /** null = top-level group (Home Services, Education…); otherwise the group it belongs to. */ parentId: string | null; providerCount?: number; supportsLiveRequest?: boolean }
+export interface Category { id: string; name: string; slug: string; icon: string | null; /** null = top-level group (Home Services, Education…); otherwise the group it belongs to. */ parentId: string | null; providerCount?: number; supportsLiveRequest?: boolean; /** Heading inside its group, e.g. "Electrical". */ subgroup?: string | null; keywords?: string[] }
 
 export interface VerificationBadges { mobile: boolean; identity: boolean; qualification: boolean }
 
@@ -40,6 +40,8 @@ export interface ProviderCard {
   ratingCount: number;
   distanceKm: number | null;
   locality: string | null;
+  /** Approximate (~1 km) public location for maps; never the exact address. */
+  area: { lat: number; lng: number } | null;
   startingPricePaise: number | null;
   startingPriceUnit: string | null;
   /** Effective presence (auto-return applied server-side via @help/domain effectivePresence). */
@@ -79,7 +81,7 @@ export interface ReviewDto {
   comment: string | null;
   reply: string | null;
   createdAt: string;
-  /** Always true: only customers who chatted with the provider (and got a reply) can review. */
+  /** Always true: only customers who contacted the provider (chat or phone) can review. */
   verified: true;
 }
 

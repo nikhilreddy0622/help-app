@@ -16,17 +16,35 @@ export async function pickImage(opts?: { multiple?: boolean; aspect?: [number, n
   return res.assets.map((a) => ({ uri: a.uri, mime: a.mimeType === 'image/png' ? 'image/png' : a.mimeType === 'image/webp' ? 'image/webp' : 'image/jpeg' }));
 }
 
+// expo/fetch (the global fetch on this SDK) rejects React Native's {uri,name,type} form parts,
+// but XMLHttpRequest streams them from disk natively.
+function postForm(url: string, form: FormData): Promise<{ status: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.timeout = 60_000;
+    xhr.onload = () => resolve({ status: xhr.status, body: xhr.responseText });
+    xhr.onerror = () => reject(new Error('Upload failed. Check your connection and try again.'));
+    xhr.ontimeout = () => reject(new Error('Upload timed out. Please try again.'));
+    xhr.send(form);
+  });
+}
+
 /** Signed upload: api.media.sign -> multipart POST -> public URL. */
 export async function uploadImage(file: { uri: string; mime: string }, purpose: Purpose): Promise<string> {
   const sig = await api.media.sign({ purpose, contentType: file.mime as 'image/jpeg' | 'image/png' | 'image/webp' });
   const form = new FormData();
   Object.entries(sig.fields).forEach(([k, v]) => form.append(k, v));
   const name = `upload.${file.mime === 'image/png' ? 'png' : file.mime === 'image/webp' ? 'webp' : 'jpg'}`;
-  form.append('file', { uri: Platform.OS === 'android' ? file.uri : file.uri.replace('file://', ''), name, type: file.mime } as unknown as Blob);
-  const res = await fetch(sig.uploadUrl, { method: 'POST', body: form });
-  if (!res.ok) throw new Error('Upload failed. Please try again.');
+  if (Platform.OS === 'web') {
+    form.append('file', await (await fetch(file.uri)).blob(), name);
+  } else {
+    form.append('file', { uri: file.uri, name, type: file.mime } as unknown as Blob);
+  }
+  const res = await postForm(sig.uploadUrl, form);
+  if (res.status < 200 || res.status >= 300) throw new Error('Upload failed. Please try again.');
   try {
-    const j = (await res.json()) as { secure_url?: string; url?: string };
+    const j = JSON.parse(res.body) as { secure_url?: string; url?: string };
     const direct = j.secure_url ?? j.url;
     if (direct) return direct;
   } catch { /* S3-style empty response */ }

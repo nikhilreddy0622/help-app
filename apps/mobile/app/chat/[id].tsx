@@ -12,24 +12,28 @@ import { api, errorMessage } from '@/lib/api';
 import { formatTimeOnly } from '@/lib/format';
 import { useSession } from '@/lib/session';
 import { colors } from '@/lib/theme';
+import { askPushPermission } from '@/lib/push';
 
 type Data = InfiniteData<Paged<MessageDto>, string | undefined>;
 
 export default function Chat() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, providerId, name: draftName, slug } = useLocalSearchParams<{ id: string; providerId?: string; name?: string; slug?: string }>();
+  // id === 'new': composing the first message to a professional; the conversation is created on send.
+  const isNew = id === 'new' && !!providerId;
   const router = useRouter();
   const { me } = useSession();
   const qc = useQueryClient();
-  const [text, setText] = useState('');
+  const [text, setText] = useState(isNew ? 'Hi, I found you on help. I need help with ' : '');
   const [err, setErr] = useState<string | null>(null);
   const list = useRef<FlatList<MessageDto>>(null);
 
-  const conv = useQuery({ queryKey: ['conversation', id], queryFn: () => api.conversations.get(id!) });
+  const conv = useQuery({ queryKey: ['conversation', id], queryFn: () => api.conversations.get(id!), enabled: !isNew });
   // Newest first; realtime appends into the first page of this cache entry.
   const q = useInfiniteQuery({
     queryKey: ['conv-messages', id], initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) => api.conversations.messages(id!, { cursor: pageParam }),
     getNextPageParam: (l) => l.meta.nextCursor ?? undefined,
+    enabled: !isNew,
   });
   const replies = useQuery({ queryKey: ['quick-replies'], queryFn: () => api.providers.quickReplies(), enabled: conv.data?.role === 'provider' });
 
@@ -47,8 +51,16 @@ export default function Chat() {
   }, [newestId, id, qc, conv.data?.unread]);
 
   const send = useMutation({
-    mutationFn: (body: string) => api.conversations.send(id!, body),
+    mutationFn: async (body: string) => {
+      if (!isNew) return api.conversations.send(id!, body);
+      const created = await api.conversations.start(providerId!, body);
+      qc.invalidateQueries({ queryKey: ['eligibility'] });
+      router.replace(`/chat/${created.id}`);
+      askPushPermission();
+      return null;
+    },
     onSuccess: (m) => {
+      if (!m) { qc.invalidateQueries({ queryKey: ['conversations'] }); return; }
       qc.setQueryData<Data>(['conv-messages', id], (old) => {
         if (!old || old.pages.some((p) => p.items.some((x) => x.id === m.id))) return old;
         const [first, ...rest] = old.pages;
@@ -61,11 +73,11 @@ export default function Chat() {
   });
 
   const c = conv.data;
-  const name = c?.counterpart.name ?? 'Chat';
+  const name = c?.counterpart.name ?? draftName ?? 'Chat';
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right', 'bottom']}>
       <Header title={name} onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-        right={c?.role === 'customer' ? <Button kind="ghost" size="sm" title="Profile" onPress={() => router.push(`/provider/${c.provider.slug}`)} /> : undefined} />
+        right={c?.role === 'customer' ? <Button kind="ghost" size="sm" title="Profile" onPress={() => router.push(`/provider/${c.provider.slug}`)} /> : isNew && slug ? <Button kind="ghost" size="sm" title="Profile" onPress={() => router.back()} /> : undefined} />
       {c?.role === 'customer' ? (
         <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border }}>
           <PresencePill status={c.provider.status} label={c.provider.statusLabel} />
@@ -77,8 +89,10 @@ export default function Chat() {
           <T v="label" style={{ flex: 1 }}>How was {c.provider.displayName.split(' ')[0]}? Write a review</T>
         </Pressable>
       ) : null}
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        {q.isPending ? <ListSkeleton count={3} /> : q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : (
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        {isNew ? (
+          <View style={{ flex: 1, justifyContent: 'center' }}><EmptyState title={`Message ${(draftName ?? '').split(' ')[0] || 'them'}`} body="Say what you need, where and when. Your phone number is never shared." /></View>
+        ) : q.isPending ? <ListSkeleton count={3} /> : q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : (
           <FlatList
             ref={list} inverted data={items} keyExtractor={(m) => m.id}
             onEndReached={() => { if (q.hasNextPage && !q.isFetchingNextPage) q.fetchNextPage(); }} onEndReachedThreshold={0.3}
@@ -96,9 +110,9 @@ export default function Chat() {
               }
               const mine = item.senderId === me?.id;
               return (
-                <View style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? colors.teal700 : colors.white, borderWidth: mine ? 0 : 1, borderColor: colors.border, borderRadius: 16, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 10, gap: 2 }}>
+                <View style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? colors.brand : colors.white, borderWidth: 0, borderRadius: 18, borderBottomRightRadius: mine ? 6 : 18, borderBottomLeftRadius: mine ? 18 : 6, shadowColor: '#0B1220', shadowOpacity: mine ? 0 : 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: mine ? 0 : 1, paddingHorizontal: 14, paddingVertical: 10, gap: 2 }}>
                   <T color={mine ? '#fff' : colors.text}>{item.body}</T>
-                  <T v="caption" style={{ fontSize: 11, alignSelf: 'flex-end' }} color={mine ? '#CCFBF1' : colors.textMuted}>{formatTimeOnly(item.createdAt)}</T>
+                  <T v="caption" style={{ fontSize: 11, alignSelf: 'flex-end' }} color={mine ? '#BFE8E1' : colors.textMuted}>{formatTimeOnly(item.createdAt)}</T>
                 </View>
               );
             }}
@@ -116,9 +130,9 @@ export default function Chat() {
         ) : null}
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, padding: 12, backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.border }}>
           <TextInput value={text} onChangeText={setText} placeholder="Message" placeholderTextColor={colors.textMuted} multiline maxLength={2000} accessibilityLabel="Message"
-            style={{ flex: 1, minHeight: 44, maxHeight: 120, borderRadius: 22, backgroundColor: colors.surfaceMuted, paddingHorizontal: 16, paddingVertical: 12, fontFamily: 'Inter_400Regular', fontSize: 15, color: colors.text }} />
+            style={{ flex: 1, minHeight: 46, maxHeight: 120, borderRadius: 23, backgroundColor: colors.surfaceMuted, paddingHorizontal: 16, paddingVertical: 12, fontFamily: 'Inter_400Regular', fontSize: 15, color: colors.text }} />
           <Pressable onPress={() => text.trim() && send.mutate(text.trim())} disabled={!text.trim() || send.isPending} accessibilityRole="button" accessibilityLabel="Send message"
-            style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.teal700, alignItems: 'center', justifyContent: 'center', opacity: !text.trim() || send.isPending ? 0.5 : 1 }}>
+            style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center', opacity: !text.trim() || send.isPending ? 0.5 : 1 }}>
             <Send size={18} color="#fff" />
           </Pressable>
         </View>

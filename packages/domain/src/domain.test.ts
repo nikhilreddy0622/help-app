@@ -61,10 +61,10 @@ describe('presence', () => {
 
 describe('reviews (directory model)', () => {
   it('requires a real interaction and allows one review', () => {
-    expect(canReviewProvider({ isSelf: false, providerReplied: true, alreadyReviewed: false }).ok).toBe(true);
-    expect(canReviewProvider({ isSelf: false, providerReplied: false, alreadyReviewed: false }).reason).toBe('NO_INTERACTION');
-    expect(canReviewProvider({ isSelf: false, providerReplied: true, alreadyReviewed: true }).reason).toBe('ALREADY_REVIEWED');
-    expect(canReviewProvider({ isSelf: true, providerReplied: true, alreadyReviewed: false }).reason).toBe('SELF');
+    expect(canReviewProvider({ isSelf: false, contacted: true, alreadyReviewed: false }).ok).toBe(true);
+    expect(canReviewProvider({ isSelf: false, contacted: false, alreadyReviewed: false }).reason).toBe('NO_INTERACTION');
+    expect(canReviewProvider({ isSelf: false, contacted: true, alreadyReviewed: true }).reason).toBe('ALREADY_REVIEWED');
+    expect(canReviewProvider({ isSelf: true, contacted: true, alreadyReviewed: false }).reason).toBe('SELF');
   });
 });
 

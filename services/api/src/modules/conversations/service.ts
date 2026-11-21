@@ -41,7 +41,7 @@ export function toConversationDto(c: ConvoRow, userId: string, reviewed: boolean
     provider: { id: c.provider.id, slug: c.provider.slug, displayName: c.provider.displayName, avatarUrl: c.provider.avatarUrl, status: pr.status, statusLabel: pr.label },
     lastMessage: last ? messageDto(last) : null,
     unread: c._count.messages,
-    canReview: isCustomer && canReviewProvider({ isSelf: false, providerReplied: !!c.providerFirstReplyAt, alreadyReviewed: reviewed }).ok,
+    canReview: isCustomer && canReviewProvider({ isSelf: false, contacted: true, alreadyReviewed: reviewed }).ok,
     createdAt: c.createdAt.toISOString(),
   };
 }

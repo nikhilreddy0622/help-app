@@ -7,6 +7,7 @@ import Landing from './pages/Landing';
 import SearchPage from './pages/Search';
 import CategoryCity from './pages/CategoryCity';
 import Services from './pages/Services';
+import CategoryGroup from './pages/CategoryGroup';
 import ProfilePage from './pages/Profile';
 import NotFound from './pages/NotFound';
 import ForProfessionals from './pages/ForProfessionals';
@@ -27,6 +28,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <Landing /> },
       { path: 'search', element: <SearchPage /> },
       { path: 'services', element: <Services /> },
+      { path: 'services/:group', element: <CategoryGroup /> },
       { path: 'c/:categorySlug/:city', element: <CategoryCity /> },
       { path: 'professionals/:slug', element: <ProfilePage /> },
       { path: 'for-professionals', element: <ForProfessionals /> },

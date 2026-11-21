@@ -67,7 +67,7 @@ export function ReviewGate({ p }: { p: ProviderPublicProfile }) {
   const q = useQuery({ queryKey: ['eligibility', p.id], enabled: status === 'authed', queryFn: () => api.reviews.eligibility(p.id) });
   const why: Record<string, string> = {
     SELF: 'You cannot review your own profile.',
-    NO_INTERACTION: 'Reviews open after you chat with this professional and they reply. Start a chat to review them later.',
+    NO_INTERACTION: 'Chat with this professional or view their number, then you can rate them here.',
     ALREADY_REVIEWED: 'You have already reviewed this professional. Thank you.',
     SIGNED_OUT: 'Log in to review professionals you have contacted.',
   };
@@ -75,11 +75,11 @@ export function ReviewGate({ p }: { p: ProviderPublicProfile }) {
   if (status === 'authed') {
     if (q.isPending) return null;
     body = q.data?.canReview
-      ? <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-ink">You contacted {p.displayName}. Share how it went.</p><Button size="sm" icon={<Star className="h-4 w-4" />} onClick={() => setOpen(true)}>Write a review</Button></div>
+      ? <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-ink">You contacted {p.displayName}. Share how it went.</p><Button size="sm" icon={<Star className="h-4 w-4" />} onClick={() => setOpen(true)}>Rate and review</Button></div>
       : <p className="text-sm text-subtle">{why[q.data?.reason ?? 'NO_INTERACTION']}</p>;
   }
   return (
-    <div className="mb-4 rounded-lg border border-line bg-white p-4">
+    <div className="mb-4 rounded-lg bg-accent-soft p-4">
       {body}
       <Modal open={open} onClose={() => setOpen(false)} title={`Review ${p.displayName}`}><p className="mb-3 text-sm text-subtle">Your review is labelled &ldquo;Contacted via help&rdquo;.</p><ReviewForm providerId={p.id} onDone={() => setTimeout(() => setOpen(false), 1200)} /></Modal>
     </div>

@@ -14,3 +14,4 @@ export * from './Segmented';
 export * from './Stepper';
 export * from './Sheet';
 export * from './ProviderCard';
+export * from './Press';

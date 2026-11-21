@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Alert, Switch, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, BackHandler, Pressable, Switch, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Briefcase, ChevronRight, Zap } from 'lucide-react-native';
+import { ArrowLeftRight, Briefcase, ChevronRight, Zap } from 'lucide-react-native';
 import { STATUS_MESSAGE_MAX, updatedAgo } from '@help/domain';
 import type { PresenceStatus, ProviderDashboard } from '@help/types';
 import { DateTimeSheet } from '@/components/DateTimeSheet';
@@ -116,11 +116,20 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 
 export default function Dashboard() {
   const router = useRouter();
-  const { me } = useSession();
+  const { me, switchMode } = useSession();
   const q = useQuery({ queryKey: ['dashboard'], queryFn: () => api.providers.dashboard() });
+  useFocusEffect(useCallback(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => { void switchMode('customer'); return true; });
+    return () => sub.remove();
+  }, [switchMode]));
   const header = (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, paddingBottom: 8 }}>
-      <View style={{ flex: 1 }}><T v="caption">Welcome back</T><T v="title" numberOfLines={1}>{me?.name ?? 'Dashboard'}</T></View>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: 20, paddingBottom: 8 }}>
+      <View style={{ flex: 1 }}><T v="caption" weight={600}>Professional dashboard</T><T v="display" numberOfLines={1} style={{ fontSize: 24, lineHeight: 30 }}>{me?.name ?? 'Your work'}</T></View>
+      <Pressable onPress={() => switchMode('customer')} accessibilityRole="button" accessibilityLabel="Switch to customer view" hitSlop={6}
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1, borderColor: colors.accent, backgroundColor: pressed ? colors.accent : colors.accentSoft })}>
+        <ArrowLeftRight size={16} color={colors.accentInk} />
+        <T v="label" weight={700} color={colors.accentInk}>Customer view</T>
+      </Pressable>
       <BellButton />
     </View>
   );
@@ -130,7 +139,7 @@ export default function Dashboard() {
         {(d) => (
           <>
             <StatusCard presence={d.presence} />
-            <SubscriptionBanner sub={d.subscription} onPress={() => router.push(d.subscription ? '/subscription' : '/onboarding?step=7')} />
+            <SubscriptionBanner sub={d.subscription} onPress={() => router.push(d.subscription ? '/subscription' : '/onboarding?section=plan')} />
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
               <Stat label="Profile views, 30 days" value={d.profileViews30d} />
               <Stat label="Chats started" value={d.chatsStarted30d} />

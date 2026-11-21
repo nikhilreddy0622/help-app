@@ -78,10 +78,11 @@ export function updatedAgo(updatedAt: Date | null, now: Date): string | null {
  * Directory-model review rule: a customer may review a provider once, and only
  * after a real interaction — a conversation in which the provider replied.
  */
-export function canReviewProvider(args: { isSelf: boolean; providerReplied: boolean; alreadyReviewed: boolean }): { ok: boolean; reason?: 'SELF' | 'NO_INTERACTION' | 'ALREADY_REVIEWED' } {
+/** Reviews need real contact (a chat or a phone reveal) so only actual customers can rate. */
+export function canReviewProvider(args: { isSelf: boolean; contacted: boolean; alreadyReviewed: boolean }): { ok: boolean; reason?: 'SELF' | 'NO_INTERACTION' | 'ALREADY_REVIEWED' } {
   if (args.isSelf) return { ok: false, reason: 'SELF' };
   if (args.alreadyReviewed) return { ok: false, reason: 'ALREADY_REVIEWED' };
-  if (!args.providerReplied) return { ok: false, reason: 'NO_INTERACTION' };
+  if (!args.contacted) return { ok: false, reason: 'NO_INTERACTION' };
   return { ok: true };
 }
 

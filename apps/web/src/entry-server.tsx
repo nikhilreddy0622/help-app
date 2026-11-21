@@ -57,6 +57,14 @@ const SSR_ROUTES: SsrRoute[] = [
     re: /^\/for-professionals\/?$/,
     prefetch: async (qc, api) => { await quiet(() => withTimeout(qc.prefetchQuery({ queryKey: ['plans'], queryFn: () => api.subscriptions.plans() }))); },
   },
+  {
+    re: /^\/services\/([^/]+)\/?$/,
+    prefetch: async (qc, api, m) => {
+      await quiet(() => withTimeout(qc.prefetchQuery(categoriesQuery(api))));
+      const cats = qc.getQueryData<Category[]>(categoriesQuery(api).queryKey);
+      if (cats && !cats.some((c) => !c.parentId && c.slug === m[1])) return { status: 404 };
+    },
+  },
   { re: /^\/help\/?$/, prefetch: async () => {} },
   { re: /^\/legal\/([^/]+)\/?$/, prefetch: async () => {} },
   { re: /^\/blog\/?$/, prefetch: async () => {} },
@@ -125,7 +133,8 @@ async function collectUrls(apiUrl: string): Promise<string[]> {
   const api = createServerApi(apiUrl);
   const urls = new Set<string>(staticPaths);
   const cats = await api.categories.list().catch(() => []);
-  for (const c of cats) for (const city of CITIES) urls.add(`/c/${c.slug}/${city.slug}`);
+  for (const c of cats) if (!c.parentId) urls.add(`/services/${c.slug}`);
+  for (const c of cats) if (c.parentId && (c.providerCount ?? 0) > 0) for (const city of CITIES) urls.add(`/c/${c.slug}/${city.slug}`);
   await Promise.all(CITIES.map(async (city) => {
     let cursor: string | undefined;
     for (let i = 0; i < 5; i++) {

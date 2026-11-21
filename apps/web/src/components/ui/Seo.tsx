@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSite } from '../../state/SiteContext';
 import { useUnread } from '../../state/RealtimeContext';
@@ -10,6 +11,8 @@ export function Seo({ title, description, path, noindex, image, type = 'website'
   const base = title === 'help' ? title : `${title} · help`;
   const full = count > 0 ? `(${count > 99 ? '99+' : count}) ${base}` : base;
   const url = path !== undefined ? `${origin}${path}` : undefined;
+  // react-helmet-async does not reliably update the title on client navigation under React 19.
+  useEffect(() => { document.title = full; }, [full]);
   return (
     <Helmet>
       <title>{full}</title>

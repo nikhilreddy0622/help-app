@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { tileColor } from '@help/ui-tokens';
+import { AreaMap } from './AreaMap';
+import { ProPhoto, RatingBadge } from './ProviderCard';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Briefcase, MapPin, MessageCircle, ShieldCheck } from 'lucide-react';
 import type { ProviderPublicProfile, ReviewDto } from '@help/types';
@@ -79,25 +82,33 @@ export function ProfileView({ p, reviewSlot }: { p: ProviderPublicProfile; revie
   const images = p.portfolio.filter((x) => x.kind === 'IMAGE' || x.kind === 'CERTIFICATE');
   return (
     <article>
-      <div className="h-36 w-full bg-navy md:h-52 md:rounded-b-xl" style={p.coverUrl ? { backgroundImage: `url(${p.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined} role="img" aria-label={p.coverUrl ? `${p.displayName} cover photo` : undefined} aria-hidden={!p.coverUrl} />
+      <div className="h-24 w-full md:h-32 md:rounded-b-xl" style={p.coverUrl ? { backgroundImage: `url(${p.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: tileColor(p.categoryName).bg }} role="img" aria-label={p.coverUrl ? `${p.displayName} cover photo` : undefined} aria-hidden={!p.coverUrl} />
       <div className="px-4 md:px-0">
         <div className="-mt-11 flex items-end gap-4 md:-mt-14">
-          <div className="rounded-full border-4 border-white bg-white"><Avatar name={p.displayName} src={p.avatarUrl} size={88} /></div>
+          <div className="rounded-lg border-4 border-white bg-white shadow-md"><ProPhoto p={p} className="h-24 w-24 rounded-md md:h-28 md:w-28" /></div>
         </div>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">{p.displayName}</h1>
+        <h1 className="mt-3 text-2xl md:text-4xl">{p.displayName}</h1>
         <p className="mt-1 text-[15px] text-ink">{p.headline} · {p.experienceYears} years</p>
-        <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-subtle"><MapPin className="h-4 w-4 flex-none text-teal" aria-hidden />{[p.locality, `serves within ${p.serviceRadiusKm} km`, p.languages.join(', ')].filter(Boolean).join(' · ')}</p>
+        <p className="mt-1 flex items-start gap-1.5 text-sm text-subtle"><MapPin className="mt-0.5 h-4 w-4 flex-none text-brand" aria-hidden />{[p.locality, `serves within ${p.serviceRadiusKm} km`, p.languages.join(', ')].filter(Boolean).join(' · ')}</p>
         <div className="mt-3 flex flex-col gap-1"><div><PresencePill status={p.status} label={p.statusLabel} /></div><PresenceNote message={p.statusMessage} updatedAt={p.statusUpdatedAt} /></div>
         <div className="mt-3"><VerificationBadgeRow badges={p.badges} qualification={p.qualifications[0]} /></div>
         <div className="card mt-4 flex divide-x divide-line py-2">
-          <Stat value={p.isNew || p.ratingAvg === null ? 'New' : `★ ${p.ratingAvg.toFixed(1)}`} label={p.ratingCount ? `${p.ratingCount} reviews` : 'no reviews yet'} />
+          <a href="#reviews" className="flex flex-1 flex-col items-center gap-1 px-2" style={{ color: '#121722' }}><RatingBadge avg={p.isNew ? null : p.ratingAvg} count={p.ratingCount} showCount={false} /><span className="text-xs text-muted">{p.ratingCount ? `${p.ratingCount} reviews` : 'Rate them'}</span></a>
           <Stat value={new Date(p.memberSince).toLocaleDateString('en-IN', { month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })} label="member since" />
           <Stat value={p.responseMinutes ? `~${p.responseMinutes} min` : '—'} label="reply time" />
         </div>
 
+        {p.area ? (
+          <section aria-label="Location" className="card mt-4 overflow-hidden">
+            <AreaMap lat={p.area.lat} lng={p.area.lng} />
+            <div className="flex items-center gap-3 p-4"><span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-teal-tint text-brand"><MapPin className="h-5 w-5" aria-hidden /></span>
+              <div><p className="font-bold">{[p.locality, p.distanceKm != null ? `${p.distanceKm} km from you` : null].filter(Boolean).join(' · ') || 'Location'}</p><p className="text-sm text-subtle">{p.serviceMode === 'REMOTE' ? 'Works online' : `Visits within ${p.serviceRadiusKm} km`} · Approximate area. Agree the exact address in chat.</p></div></div>
+          </section>
+        ) : null}
+
         <nav aria-label="Profile sections" className="sticky top-16 z-10 -mx-4 mt-6 flex gap-5 overflow-x-auto border-b border-line bg-canvas px-4 md:mx-0 md:px-0">
           {[['services', 'Services'], ['about', 'About'], ['availability', 'Working hours'], ['portfolio', 'Portfolio'], ['reviews', 'Reviews']].map(([id, l]) => (
-            <a key={id} href={`#${id}`} className="flex h-11 flex-none items-center border-b-2 border-transparent text-sm font-semibold text-subtle hover:border-teal-700 hover:text-navy" style={{ color: '#475569' }}>{l}</a>
+            <a key={id} href={`#${id}`} className="flex h-11 flex-none items-center border-b-2 border-transparent text-sm font-bold text-subtle hover:border-brand hover:text-ink" style={{ color: '#475569' }}>{l}</a>
           ))}
         </nav>
 

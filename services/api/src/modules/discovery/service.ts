@@ -43,6 +43,8 @@ async function candidates(q: DiscoverySearchInput, extraWhere: Prisma.Sql[] = []
   if (q.q) {
     const like = `%${likeEscape(q.q)}%`;
     const match = Prisma.sql`(p."displayName" ILIKE ${like} OR p.headline ILIKE ${like} OR c.name ILIKE ${like}
+      OR EXISTS (SELECT 1 FROM unnest(c.keywords) k WHERE k ILIKE ${like})
+      OR EXISTS (SELECT 1 FROM "Category" pc WHERE pc.id = c."parentId" AND pc.name ILIKE ${like})
       OR EXISTS (SELECT 1 FROM "ProviderSkill" ps JOIN "Skill" s ON s.id = ps."skillId" WHERE ps."providerId" = p.id AND s.name ILIKE ${like})
       OR similarity(p."displayName", ${q.q}) > 0.3 OR similarity(COALESCE(p.headline, ''), ${q.q}) > 0.3 OR similarity(COALESCE(c.name, ''), ${q.q}) > 0.3)`;
     where.push(match);
@@ -152,7 +154,7 @@ export async function listCategories(): Promise<Category[]> {
   const groups = cats.filter((c) => !c.parentId);
   const ordered = groups.flatMap((g) => [g, ...cats.filter((c) => c.parentId === g.id)]);
   const orphans = cats.filter((c) => c.parentId && !groups.some((g) => g.id === c.parentId));
-  return [...ordered, ...orphans].map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, parentId: c.parentId, providerCount: total.get(c.id) ?? 0, supportsLiveRequest: c.supportsLiveRequest }));
+  return [...ordered, ...orphans].map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, parentId: c.parentId, providerCount: total.get(c.id) ?? 0, supportsLiveRequest: c.supportsLiveRequest, subgroup: c.subgroup, keywords: c.keywords }));
 }
 
 /** Home feed: categories + availableNow + topRated + recentlyActive near the user. */

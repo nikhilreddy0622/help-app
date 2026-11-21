@@ -4,19 +4,19 @@ import { Alert, Image, Pressable, ScrollView, Share, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Copy, Heart, MapPin, MessageCircle, MoreVertical, Share2 } from 'lucide-react-native';
+import { ChevronLeft, Copy, Heart, MapPin, MessageCircle, MoreVertical, Share2, Star } from 'lucide-react-native';
 import type { ProviderPublicProfile, ReviewDto, ServiceOffering } from '@help/types';
 import { Gallery } from '@/components/Gallery';
+import Map from '@/components/Map';
 import { PresencePill, StatusNote } from '@/components/ui/StatusPill';
-import { askPushPermission } from '@/lib/push';
-import { Button, BadgeRow, Avatar, Card, Chip, EmptyState, ErrorState, Input, Rating, Sheet, Skeleton, T } from '@/components/ui';
+import { Button, BadgeRow, ProPhoto, Card, Chip, EmptyState, ErrorState, Input, Rating, Sheet, Skeleton, T } from '@/components/ui';
 import { api, errorMessage } from '@/lib/api';
 import { useSaved } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
-import { colors } from '@/lib/theme';
+import { colors, shadowMd, shadowSm, tileColor } from '@/lib/theme';
 import { WEEKDAYS, formatDate, formatINR, minuteLabel } from '@/lib/format';
 
-const WEB_BASE = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://help.example.com';
+const WEB_BASE = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://www.helpbharath.com';
 type Tab = 'Services' | 'About' | 'Portfolio' | 'Reviews';
 
 function priceNode(s: ServiceOffering) {
@@ -35,9 +35,6 @@ export default function ProviderProfile() {
   const [tab, setTab] = useState<Tab>('Services');
   const [gallery, setGallery] = useState<number | null>(null);
   const [menu, setMenu] = useState(false);
-  const [chatSheet, setChatSheet] = useState(false);
-  const [chatText, setChatText] = useState('');
-  const [chatBusy, setChatBusy] = useState(false);
   const [phone, setPhone] = useState<string | null>(null);
   const [phoneBusy, setPhoneBusy] = useState(false);
   const q = useQuery({ queryKey: ['provider', slug], queryFn: () => api.providers.bySlug(slug!) });
@@ -50,36 +47,36 @@ export default function ProviderProfile() {
   if (q.isPending || (q.data && !p)) return <Shell><View style={{ padding: 20, gap: 16 }}><Skeleton h={88} w={88} r={44} /><Skeleton w="50%" h={24} /><Skeleton w="80%" /><Skeleton h={72} r={14} /></View></Shell>;
   if (q.isError || !p) return <Shell><ErrorState error={q.error} onRetry={() => q.refetch()} /></Shell>;
 
-  const startChat = () => { if (requireAuth()) { setChatText(`Hi, I found you on help. I need help with `); setChatSheet(true); } };
+  const startChat = () => { if (requireAuth()) router.push({ pathname: '/chat/[id]', params: { id: 'new', providerId: p.id, name: p.displayName, slug: p.slug } }); };
   const showPhone = async () => {
     if (!requireAuth()) return;
     setPhoneBusy(true);
-    try { const r = await api.providers.revealPhone(p.id); setPhone(r.phone); } catch (e) { Alert.alert('Phone number', errorMessage(e)); } finally { setPhoneBusy(false); }
+    try { const r = await api.providers.revealPhone(p.id); setPhone(r.phone); qc.invalidateQueries({ queryKey: ['eligibility'] }); } catch (e) { Alert.alert('Phone number', errorMessage(e)); } finally { setPhoneBusy(false); }
   };
   const share = () => Share.share({ message: `${p.displayName}, ${p.categoryName} on help: ${WEB_BASE}/professionals/${p.slug}` }).catch(() => undefined);
   const isSaved = saved.isSaved(p.id);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['left', 'right', 'bottom']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-        <View style={{ height: 156, backgroundColor: colors.navy }}>
+        <View style={{ height: 170, backgroundColor: tileColor(p.categoryName).bg }}>
           {p.coverUrl ? <Image source={{ uri: p.coverUrl }} style={{ ...StyleAbs, opacity: 0.55 }} /> : null}
           <SafeAreaView edges={['top']} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingTop: 4 }}>
-            <RoundBtn label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}><ChevronLeft size={22} color="#fff" /></RoundBtn>
+            <RoundBtn label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}><ChevronLeft size={22} color={colors.text} /></RoundBtn>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <RoundBtn label="Share profile" onPress={share}><Share2 size={20} color="#fff" /></RoundBtn>
-              <RoundBtn label={isSaved ? 'Remove from saved' : 'Save professional'} onPress={() => saved.toggle(p.id)}><Heart size={20} color="#fff" fill={isSaved ? '#fff' : 'transparent'} /></RoundBtn>
-              <RoundBtn label="More options" onPress={() => (signedIn ? setMenu(true) : requireAuth())}><MoreVertical size={20} color="#fff" /></RoundBtn>
+              <RoundBtn label="Share profile" onPress={share}><Share2 size={20} color={colors.text} /></RoundBtn>
+              <RoundBtn label={isSaved ? 'Remove from saved' : 'Save professional'} onPress={() => saved.toggle(p.id)}><Heart size={20} color={isSaved ? colors.danger : colors.text} fill={isSaved ? colors.danger : 'transparent'} /></RoundBtn>
+              <RoundBtn label="More options" onPress={() => (signedIn ? setMenu(true) : requireAuth())}><MoreVertical size={20} color={colors.text} /></RoundBtn>
             </View>
           </SafeAreaView>
         </View>
 
         <View style={{ paddingHorizontal: 20, gap: 16, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
-          <View style={{ marginTop: -44, width: 96, height: 96, borderRadius: 48, borderWidth: 4, borderColor: colors.white, overflow: 'hidden', backgroundColor: colors.white }}>
-            <Avatar name={p.displayName} url={p.avatarUrl} size={88} />
+          <View style={{ marginTop: -56, width: 112, height: 112, borderRadius: 30, borderWidth: 4, borderColor: colors.white, overflow: 'hidden', backgroundColor: colors.white }}>
+            <ProPhoto p={p} size={104} radius={26} />
           </View>
           <View style={{ gap: 4, marginTop: -6 }}>
-            <T v="title" style={{ fontSize: 22, lineHeight: 28 }} weight={700}>{p.displayName}</T>
+            <T v="display" style={{ fontSize: 24, lineHeight: 30 }}>{p.displayName}</T>
             <T>{p.headline || p.categoryName}{p.experienceYears ? ` · ${p.experienceYears} years` : ''}</T>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 4 }}>
               <MapPin size={14} color={colors.textMuted} style={{ marginTop: 2 }} />
@@ -88,16 +85,18 @@ export default function ProviderProfile() {
           </View>
           <BadgeRow badges={p.badges} qualificationLabel={p.qualifications[0]} />
 
-          <View style={{ flexDirection: 'row', borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingVertical: 12 }}>
-            <Stat top={p.ratingCount ? <Rating avg={p.ratingAvg} count={p.ratingCount} showCount={false} /> : <T v="heading">New</T>} sub={`${p.ratingCount} review${p.ratingCount === 1 ? '' : 's'}`} />
+          <View style={[{ flexDirection: 'row', backgroundColor: colors.white, borderRadius: 18, paddingVertical: 14 }, shadowSm]}>
+            <Stat onPress={() => setTab('Reviews')} top={p.ratingCount ? <Rating avg={p.ratingAvg} count={p.ratingCount} showCount={false} /> : <T v="heading">New</T>} sub={`${p.ratingCount} review${p.ratingCount === 1 ? '' : 's'}`} />
             <Stat top={<T v="heading">{new Date(p.memberSince).getFullYear()}</T>} sub="member since" bordered />
             <Stat top={<T v="heading">{p.responseMinutes != null ? `~${p.responseMinutes} min` : '—'}</T>} sub="reply time" />
           </View>
 
-          <View style={{ flexDirection: 'row', gap: 20, borderBottomWidth: 1, borderBottomColor: colors.border }} accessibilityRole="tablist">
+          <LocationCard p={p} />
+
+          <View style={{ flexDirection: 'row', gap: 4, backgroundColor: colors.surfaceMuted, borderRadius: 14, padding: 4 }} accessibilityRole="tablist">
             {(['Services', 'About', 'Portfolio', 'Reviews'] as Tab[]).map((t) => (
-              <Pressable key={t} onPress={() => setTab(t)} accessibilityRole="tab" accessibilityState={{ selected: tab === t }} style={{ height: 44, justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: tab === t ? colors.teal700 : 'transparent' }}>
-                <T v="label" weight={tab === t ? 600 : 500} color={tab === t ? colors.navy : colors.textMuted}>{t}</T>
+              <Pressable key={t} onPress={() => setTab(t)} accessibilityRole="tab" accessibilityState={{ selected: tab === t }} style={{ flex: 1, height: 40, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: tab === t ? colors.white : 'transparent' }}>
+                <T v="label" weight={tab === t ? 700 : 600} color={tab === t ? colors.text : colors.textMuted} style={{ fontSize: 13 }}>{t}</T>
               </Pressable>
             ))}
           </View>
@@ -126,7 +125,7 @@ export default function ProviderProfile() {
           ) : null}
           {tab === 'Reviews' ? (
             <>
-              {elig.data?.canReview ? <Button title="Write a review" onPress={() => router.push(`/review/${p.id}`)} /> : <T v="caption">You can review after chatting with this professional.</T>}
+              <ReviewPrompt canReview={!!elig.data?.canReview} reason={elig.data?.reason} signedIn={signedIn} onWrite={() => router.push(`/review/${p.id}`)} onSignIn={requireAuth} />
               <Reviews p={p} />
             </>
           ) : null}
@@ -138,26 +137,18 @@ export default function ProviderProfile() {
         </View>
       </ScrollView>
 
-      <View style={{ borderTopWidth: 1, borderTopColor: colors.border, padding: 16, paddingBottom: 12, gap: 8, backgroundColor: colors.white }}>
+      <View style={[{ padding: 16, paddingBottom: 12, gap: 8, backgroundColor: colors.white, borderTopLeftRadius: 22, borderTopRightRadius: 22 }, shadowMd]}>
         {p.status !== 'AVAILABLE' ? (
           <T v="caption" color={colors.textSubtle} align="center">
-            {p.status === 'AWAY' ? 'Away' : 'Busy'}{p.statusUntil ? ` until ${new Date(p.statusUntil).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}` : ''}. You can still message; they will reply when back.
+            {p.statusLabel}. You can still message; they will reply when back.
           </T>
         ) : null}
         <View style={{ flexDirection: 'row', gap: 10, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
           <Button size="lg" title="Chat" icon={<MessageCircle size={18} color="#fff" />} style={{ flex: 1 }} onPress={startChat} />
-          {p.phoneAvailable ? <Button kind="secondary" size="lg" title="Show phone number" loading={phoneBusy} style={{ flex: 1.3 }} onPress={showPhone} /> : null}
+          {p.phoneAvailable ? <Button kind="accent" size="lg" title="Show number" loading={phoneBusy} style={{ flex: 1 }} onPress={showPhone} /> : null}
         </View>
       </View>
 
-      <Sheet visible={chatSheet} onClose={() => setChatSheet(false)} title={`Message ${p.displayName.split(' ')[0]}`}
-        footer={<Button title="Send message" loading={chatBusy} disabled={chatText.trim().length < 2} onPress={async () => {
-          setChatBusy(true);
-          try { const c = await api.conversations.start(p.id, chatText.trim()); setChatSheet(false); qc.invalidateQueries({ queryKey: ['conversations'] }); router.push(`/chat/${c.id}`); askPushPermission(); } catch (e) { Alert.alert('Could not send', errorMessage(e)); } finally { setChatBusy(false); }
-        }} />}>
-        <Input multiline value={chatText} onChangeText={setChatText} maxLength={2000} accessibilityLabel="First message" />
-        <T v="caption">Your phone number is never shared. Chat stays inside help.</T>
-      </Sheet>
       <Sheet visible={!!phone} onClose={() => setPhone(null)} title={`${p.displayName}'s number`}>
         <T style={{ fontSize: 28, lineHeight: 34 }} weight={700} color={colors.navy} selectable>{phone}</T>
         <Button title="Copy" icon={<Copy size={18} color="#fff" />} onPress={async () => { await Clipboard.setStringAsync(phone ?? ''); Alert.alert('Copied', 'Phone number copied to clipboard.'); }} />
@@ -182,14 +173,43 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 function RoundBtn({ children, label, onPress }: { children: React.ReactNode; label: string; onPress: () => void }) {
-  return <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>{children}</Pressable>;
+  return <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.85)', alignItems: 'center', justifyContent: 'center' }}>{children}</Pressable>;
 }
 
-function Stat({ top, sub, bordered }: { top: React.ReactNode; sub: string; bordered?: boolean }) {
+function Stat({ top, sub, bordered, onPress }: { top: React.ReactNode; sub: string; bordered?: boolean; onPress?: () => void }) {
   return (
-    <View style={{ flex: 1, alignItems: 'center', gap: 2, borderLeftWidth: bordered ? 1 : 0, borderRightWidth: bordered ? 1 : 0, borderColor: colors.border }}>
+    <Pressable onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined} style={{ flex: 1, alignItems: 'center', gap: 2, borderLeftWidth: bordered ? 1 : 0, borderRightWidth: bordered ? 1 : 0, borderColor: colors.border }}>
       {top}
       <T v="caption" style={{ fontSize: 12 }}>{sub}</T>
+    </Pressable>
+  );
+}
+
+function LocationCard({ p }: { p: ProviderPublicProfile }) {
+  const line = [p.locality, p.distanceKm != null ? `${p.distanceKm} km from you` : null].filter(Boolean).join(' · ');
+  return (
+    <View style={[{ backgroundColor: colors.white, borderRadius: 18, overflow: 'hidden' }, shadowSm]}>
+      {p.area ? <Map style={{ height: 140 }} center={p.area} zoom={13} radiusKm={1} hideCenter interactive={false} /> : null}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 }}>
+        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.tealTint, alignItems: 'center', justifyContent: 'center' }}><MapPin size={18} color={colors.teal700} /></View>
+        <View style={{ flex: 1 }}>
+          <T v="label" weight={600} color={colors.text}>{line || 'Location not added yet'}</T>
+          <T v="caption">{p.serviceMode === 'REMOTE' ? 'Works online' : `Visits within ${p.serviceRadiusKm} km`}{p.areasServed.length ? ` · ${p.areasServed.slice(0, 3).join(', ')}` : ''}</T>
+        </View>
+      </View>
+      <T v="caption" style={{ fontSize: 11, paddingHorizontal: 12, paddingBottom: 10, marginTop: -4 }}>Approximate area shown. Agree the exact address with them in chat.</T>
+    </View>
+  );
+}
+
+function ReviewPrompt({ canReview, reason, signedIn, onWrite, onSignIn }: { canReview: boolean; reason?: string; signedIn: boolean; onWrite: () => void; onSignIn: () => void }) {
+  if (canReview) return <Button title="Rate and review" icon={<Star size={18} color="#fff" />} onPress={onWrite} />;
+  const text = !signedIn ? 'Sign in to rate this professional.' : reason === 'ALREADY_REVIEWED' ? 'Thanks, you have already reviewed this professional.' : reason === 'SELF' ? 'This is your profile.' : 'Chat with them or view their number, then you can rate them here.';
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.surfaceMuted, borderRadius: 12, padding: 12 }}>
+      <Star size={18} color={colors.textMuted} />
+      <T v="caption" style={{ flex: 1 }}>{text}</T>
+      {!signedIn ? <Button kind="ghost" size="sm" title="Sign in" onPress={onSignIn} /> : null}
     </View>
   );
 }
@@ -227,7 +247,7 @@ function Reviews({ p }: { p: ProviderPublicProfile }) {
   });
   const list: ReviewDto[] = q.data ? q.data.pages.flatMap((x) => x.items) : p.recentReviews;
   if (q.isPending && !p.recentReviews.length) return <Skeleton h={80} r={12} />;
-  if (!list.length) return <EmptyState title="No reviews yet" body="Reviews come only from customers who chatted with this professional." />;
+  if (!list.length) return <EmptyState title="No reviews yet" body="Reviews come only from customers who contacted this professional." />;
   return (
     <View style={{ gap: 12 }}>
       {list.map((r) => (

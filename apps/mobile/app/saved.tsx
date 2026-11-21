@@ -1,11 +1,12 @@
 import React from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
+import { FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Heart } from 'lucide-react-native';
-import { EmptyState, ErrorState, ListSkeleton, ProviderCard, T } from '@/components/ui';
+import { EmptyState, ErrorState, ListSkeleton, ProviderCard } from '@/components/ui';
 import { useCompare } from '@/lib/compare';
 import { CompareBar } from '@/components/CompareBar';
+import { Header } from '@/components/Screen';
 import { useSaved } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { colors } from '@/lib/theme';
@@ -17,8 +18,8 @@ export default function Saved() {
   const cmp = useCompare();
   const q = s.query;
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right']}>
-      <View style={{ padding: 16, paddingBottom: 8 }}><T v="title">Saved</T></View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right', 'bottom']}>
+      <Header title="Saved professionals" />
       {!signedIn ? (
         <EmptyState icon={<Heart size={28} color={colors.textMuted} />} title="Save professionals you like" body="Sign in to keep a shortlist and come back to it any time." actionLabel="Sign in" onAction={() => router.push('/auth/welcome')} />
       ) : q.isPending ? <ListSkeleton /> : q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : (

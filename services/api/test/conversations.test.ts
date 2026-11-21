@@ -92,11 +92,11 @@ describe('conversations', () => {
     expect(autos[0].body).toBe('On a job, back by 6 PM');
     expect(autos[0].senderId).toBe(p.userId);
 
-    // auto-reply does not unlock reviews
+    // an auto-reply is not a real reply, but the customer made contact, so they may review
     const row = await prisma.conversation.findUniqueOrThrow({ where: { id: conv.id } });
     expect(row.providerFirstReplyAt).toBeNull();
     const elig = await api().get(`${V1}/reviews/eligibility/${p.providerId}`).set(c.auth).expect(200);
-    expect(elig.body.data).toEqual({ canReview: false, reason: 'NO_INTERACTION' });
+    expect(elig.body.data).toEqual({ canReview: true });
 
     // a new status period allows one more auto-reply
     await api().put(`${V1}/providers/me/status`).set(p.auth).send({ status: 'AWAY', message: 'Available from Monday', until }).expect(200);
@@ -115,7 +115,7 @@ describe('conversations', () => {
 });
 
 describe('reviews', () => {
-  t('only after the provider replied, once, shown as "First L."', async () => {
+  t('only after contact (chat or phone reveal), once, shown as "First L."', async () => {
     const c = await loginPhone();
     await api().patch(`${V1}/users/me`).set(c.auth).send({ name: 'Rahul Sharma' }).expect(200);
     const review = { providerId: pro.providerId, overall: 5, quality: 5, behaviour: 4, punctuality: 5, value: 4, communication: 5, comment: 'Great' };
@@ -126,15 +126,16 @@ describe('reviews', () => {
     expect(none.body.error.details.reason).toBe('NO_INTERACTION');
 
     const conv = await startChat(c, pro, 'Do you do emergency repairs?');
-    const stillNo = await api().post(`${V1}/reviews`).set(c.auth).send(review).expect(409);
-    expect(stillNo.body.error.details.reason).toBe('NO_INTERACTION'); // provider has not replied yet
-
-    await reply(pro, conv.id, 'Yes we do, call anytime.').expect(201);
     const mine = await api().get(`${V1}/conversations/${conv.id}`).set(c.auth).expect(200);
     expect(mine.body.data.canReview).toBe(true);
     expect((await api().get(`${V1}/reviews/eligibility/${pro.providerId}`).set(c.auth)).body.data.canReview).toBe(true);
 
-    await api().post(`${V1}/reviews`).set(stranger.auth).send(review).expect(409); // never chatted
+    await api().post(`${V1}/reviews`).set(stranger.auth).send(review).expect(409); // never contacted
+
+    // viewing the phone number also counts as contact
+    const caller = await loginPhone();
+    await api().post(`${V1}/providers/${pro.providerId}/phone`).set(caller.auth).expect(200);
+    expect((await api().get(`${V1}/reviews/eligibility/${pro.providerId}`).set(caller.auth)).body.data.canReview).toBe(true);
     const r = await api().post(`${V1}/reviews`).set(c.auth).send(review).expect(201);
     expect(r.body.data.authorName).toBe('Rahul S.');
     const again = await api().post(`${V1}/reviews`).set(c.auth).send(review).expect(409);
@@ -172,16 +173,20 @@ describe('reveal phone', () => {
 });
 
 describe('discovery and presence', () => {
-  t('returns only discoverable providers and never leaks phone or coordinates', async () => {
+  t('returns only discoverable providers and never leaks phone or exact coordinates', async () => {
     const hidden = await makeProvider({ ...BASE, subscribed: false, name: 'Hidden Unsubscribed' });
     const res = await api().get(`${V1}/discovery/search`).query({ lat: BASE.lat, lng: BASE.lng, radiusKm: 5 }).expect(200);
     const ids = res.body.data.map((x: { id: string }) => x.id);
     expect(ids).toContain(pro.providerId);
     expect(ids).not.toContain(hidden.providerId);
 
-    const raw = JSON.stringify(res.body);
+    // Only the ~1 km approximate `area` may carry coordinates.
+    const raw = JSON.stringify(res.body.data.map(({ area: _area, ...rest }: Record<string, unknown>) => rest));
     for (const secret of [pro.phone, hidden.phone, '"lat"', '"lng"', '"phone"', '"email"']) expect(raw).not.toContain(secret);
     const card = res.body.data.find((x: { id: string }) => x.id === pro.providerId);
+    expect(Math.abs(card.area.lat - BASE.lat)).toBeLessThan(0.01);
+    expect(Math.abs(card.area.lng - BASE.lng)).toBeLessThan(0.01);
+    expect(card.area.lat === BASE.lat && card.area.lng === BASE.lng).toBe(false);
     expect(Math.round(card.distanceKm * 10) / 10).toBe(card.distanceKm);
     expect(card).toMatchObject({ status: 'AVAILABLE', statusLabel: 'Available now', availableNow: true, statusFresh: false });
 
@@ -191,7 +196,8 @@ describe('discovery and presence', () => {
     await activateSubscription(pro.providerId, 'ACTIVE');
 
     const profile = await api().get(`${V1}/providers/${pro.slug}`).expect(200);
-    const praw = JSON.stringify(profile.body);
+    const { area: _pa, ...profileRest } = profile.body.data;
+    const praw = JSON.stringify(profileRest);
     expect(praw).not.toContain(pro.phone);
     expect(praw).not.toContain('"lat"');
     expect(profile.body.data.phoneAvailable).toBe(true);

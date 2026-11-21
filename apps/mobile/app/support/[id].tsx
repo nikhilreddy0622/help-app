@@ -48,7 +48,7 @@ export default function TicketThread() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right', 'bottom']}>
       <Header title={t ? `#${t.number} ${t.subject}` : 'Ticket'} subtitle={t ? t.category : undefined} onBack={() => (router.canGoBack() ? router.back() : router.replace('/account/help'))}
         right={t && !closed ? <Button kind="ghost" size="sm" title="Close" onPress={() => Alert.alert('Close this ticket?', 'You can open a new one any time.', [{ text: 'Keep open', style: 'cancel' }, { text: 'Close ticket', onPress: () => close.mutate() }])} /> : undefined} />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         {q.isPending ? <ListSkeleton count={3} /> : q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : (
           <FlatList
             ref={list} data={t!.messages} keyExtractor={(m) => m.id} refreshing={q.isRefetching} onRefresh={() => q.refetch()}

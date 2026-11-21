@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss';
-import { colors, radius } from '@help/ui-tokens';
+import { colors } from '@help/ui-tokens';
 
 // Tokens from packages/ui-tokens mapped into the Tailwind theme.
 export default {
@@ -8,6 +8,10 @@ export default {
     extend: {
       colors: {
         navy: colors.navy,
+        brand: { DEFAULT: colors.brand, deep: colors.brandDeep },
+        accent: { DEFAULT: colors.accent, soft: colors.accentSoft, ink: colors.accentInk },
+        rating: colors.rating,
+        live: colors.live,
         teal: { DEFAULT: colors.teal, 700: colors.teal700, 800: colors.teal800, tint: colors.tealTint },
         canvas: colors.bg,
         card: colors.card,
@@ -22,11 +26,12 @@ export default {
         danger: { DEFAULT: colors.danger, bg: colors.dangerBg },
         info: { bg: colors.infoBg, fg: colors.infoFg },
       },
-      borderRadius: { sm: `${radius.sm}px`, md: `${radius.md}px`, lg: `${radius.lg}px`, xl: `${radius.xl}px` },
+      borderRadius: { sm: '10px', md: '14px', lg: '20px', xl: '28px' },
       fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
       boxShadow: {
-        sm: '0 1px 2px rgba(15,23,42,0.04)',
-        md: '0 4px 12px rgba(15,23,42,0.08)',
+        sm: '0 2px 6px rgba(11,18,32,0.06)',
+        md: '0 8px 24px rgba(11,18,32,0.10)',
+        lift: '0 12px 32px rgba(11,18,32,0.14)',
       },
       screens: { xs: '360px', md: '768px', lg: '1024px', xl: '1440px' },
     },

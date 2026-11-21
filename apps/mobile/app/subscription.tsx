@@ -33,7 +33,7 @@ export default function Subscription() {
     <Screen title="Subscription and plan" onRefresh={async () => { await q.refetch(); }} contentStyle={{ padding: 16, gap: 16 }}>
       <QueryBoundary q={q} skeleton={<ListSkeleton count={2} />}>
         {(s) => !s ? (
-          <EmptyState title="No active plan" body="Choose a plan to make your profile visible and be contacted by customers." actionLabel="Choose a plan" onAction={() => router.push('/onboarding?step=7')} />
+          <EmptyState title="No active plan" body="Choose a plan to make your profile visible and be contacted by customers." actionLabel="Choose a plan" onAction={() => router.push('/onboarding?section=plan&edit=1')} />
         ) : (
           <>
             <SubscriptionBanner sub={s} onPress={() => undefined} />
@@ -48,7 +48,7 @@ export default function Subscription() {
             </Card>
             {s.status === 'ACTIVE' && !s.cancelAtPeriodEnd ? <Button kind="danger" title="Cancel renewal" loading={cancel.isPending} onPress={() => confirmCancel(s.currentPeriodEnd)} /> : null}
             {s.cancelAtPeriodEnd && s.entitled ? <T v="caption">Renewal is off. Your profile stays live until {formatDate(s.currentPeriodEnd)}.</T> : null}
-            {!s.entitled || s.status === 'PAST_DUE' ? <Button title="Renew or change plan" onPress={() => router.push('/onboarding?step=7')} /> : null}
+            {!s.entitled || s.status === 'PAST_DUE' ? <Button title="Renew or change plan" onPress={() => router.push('/onboarding?section=plan&edit=1')} /> : null}
             <Button kind="secondary" title="Payment history" onPress={() => router.push('/payments')} />
           </>
         )}

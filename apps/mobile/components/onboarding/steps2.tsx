@@ -15,6 +15,7 @@ import { askPushPermission } from '@/lib/push';
 import { colors } from '@/lib/theme';
 import { pickImage, uploadImage } from '@/lib/upload';
 import { useRegisterSave, useStep } from './ctx';
+import { ServiceSuggestions } from './setup';
 
 const UNITS: [string, string][] = [['PER_VISIT', 'Per visit'], ['HOURLY', 'Per hour'], ['FIXED', 'Fixed'], ['STARTING_AT', 'Starting at'], ['PER_DAY', 'Per day'], ['PER_SESSION', 'Per session']];
 
@@ -55,7 +56,9 @@ export function StepPricing() {
           <IconButton label={`Remove ${s.title}`} icon={<Trash2 size={18} color={colors.danger} />} onPress={() => remove(s)} />
         </Card>
       ))}
-      <Button kind="secondary" title="Add a service" icon={<Plus size={18} color={colors.navy} />} onPress={() => open({})} />
+      {!provider?.services.length ? <T color={colors.textMuted}>Add what you offer and a starting price. Customers pick people who show prices.</T> : null}
+      <ServiceSuggestions taken={(provider?.services ?? []).map((s) => s.title)} onPick={(title) => open({ title })} />
+      <Button kind="secondary" title={provider?.services.length ? 'Add another service' : 'Add a service'} icon={<Plus size={18} color={colors.navy} />} onPress={() => open({})} />
       <Sheet visible={!!editing} onClose={() => setEditing(null)} title={editing?.id ? 'Edit service' : 'New service'} footer={<Button title="Save service" loading={busy} onPress={save} />}>
         <Input label="Service name" value={title} onChangeText={setTitle} placeholder="e.g. Fan installation" />
         <Input label={'Price (₹)'} keyboardType="number-pad" value={rupees} onChangeText={(t) => setRupees(t.replace(/[^\d]/g, ''))} hint={rupees ? formatINR(Number(rupees) * 100) : undefined} />
@@ -187,7 +190,7 @@ export function StepVerification() {
   );
 }
 
-export function StepPlan({ onDone }: { onDone: () => void }) {
+export function StepPlan({ onDone, onLater }: { onDone: () => void; onLater?: () => void }) {
   const { provider, refresh } = useStep();
   const { me } = useSession();
   const preview = useQuery({ queryKey: ['preview'], queryFn: () => api.providers.preview(), enabled: !!provider });
@@ -225,7 +228,7 @@ export function StepPlan({ onDone }: { onDone: () => void }) {
     <View style={{ gap: 20 }}>
       {p ? (
         <Card style={{ gap: 6 }}>
-          <T v="overline">Preview</T>
+          <T v="overline">How customers will see you</T>
           <T v="heading" color={colors.text}>{p.displayName}</T>
           <T color={colors.textMuted}>{p.headline}</T>
           <T v="caption">{p.categoryName} {'·'} {p.experienceYears} yrs {'·'} {p.services.length} service{p.services.length === 1 ? '' : 's'}</T>
@@ -252,6 +255,7 @@ export function StepPlan({ onDone }: { onDone: () => void }) {
         <Button size="lg" title={chosen ? `Pay ${formatINR(chosen.pricePaise)} and go live` : 'Choose a plan'} loading={stage === 'paying' || stage === 'verifying' || stage === 'waiting'} disabled={!chosen} onPress={pay} />
       )}
       {stage === 'timeout' ? <Button kind="secondary" title="Go to dashboard" onPress={onDone} /> : null}
+      {stage === 'idle' && onLater ? <Button kind="ghost" title="Finish later" onPress={onLater} /> : null}
     </View>
   );
 }

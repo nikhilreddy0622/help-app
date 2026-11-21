@@ -32,7 +32,7 @@ export default function Insights() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
-        <T v="title">Insights</T>
+        <T v="display" style={{ fontSize: 26, lineHeight: 32 }}>Insights</T>
         <Segmented value={days} onChange={setDays} options={[{ key: 7, label: '7 days' }, { key: 30, label: '30 days' }, { key: 90, label: '90 days' }]} />
         <QueryBoundary q={q} skeleton={<ListSkeleton count={3} />}>
           {(d) => {

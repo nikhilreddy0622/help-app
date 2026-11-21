@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mobile-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@help/mobile", "exec", "expo", "start", "--web", "--port", "8082"],
+      "port": 8082
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@help/web", "exec", "tsx", "server.ts"],
+      "port": 5173
+    }
+  ]
+}

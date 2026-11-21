@@ -1,20 +1,15 @@
-import { colors, radius, space, shadow, touchTarget, font } from '@help/ui-tokens';
+import { colors, radius, space, shadow, touchTarget, font, tileColor, tilePalette } from '@help/ui-tokens';
 import type { ViewStyle } from 'react-native';
 
-export { colors, radius, space, touchTarget, font };
+export { colors, radius, space, touchTarget, font, tileColor, tilePalette };
 
 export const shadowSm: ViewStyle = {
   shadowColor: shadow.sm.color, shadowOpacity: shadow.sm.opacity, shadowRadius: shadow.sm.radius,
-  shadowOffset: { width: 0, height: shadow.sm.offsetY }, elevation: 1,
+  shadowOffset: { width: 0, height: shadow.sm.offsetY }, elevation: 2,
 };
 export const shadowMd: ViewStyle = {
   shadowColor: shadow.md.color, shadowOpacity: shadow.md.opacity, shadowRadius: shadow.md.radius,
-  shadowOffset: { width: 0, height: shadow.md.offsetY }, elevation: 4,
+  shadowOffset: { width: 0, height: shadow.md.offsetY }, elevation: 6,
 };
 
-export const avatarPalette = [
-  { bg: '#E0F2F1', fg: '#0F766E' },
-  { bg: '#E8EAF6', fg: '#172B4D' },
-  { bg: '#FEF3C7', fg: '#92400E' },
-  { bg: '#E0F2FE', fg: '#075985' },
-];
+export const avatarPalette = tilePalette.map((t) => ({ bg: t.bg, fg: t.fg }));

@@ -1,4 +1,4 @@
-import { effectivePresence, type Presence } from '@help/domain';
+import { approxArea, effectivePresence, type Presence } from '@help/domain';
 import type { ProviderCard, ReviewDto, ServiceOffering } from '@help/types';
 import type { Prisma, Review } from '@prisma/client';
 import { prisma } from '../../lib/core';
@@ -48,7 +48,7 @@ export function isNewProvider(p: { ratingCount: number; publishedAt: Date | null
   return p.ratingCount === 0 && !!p.publishedAt && now.getTime() - p.publishedAt.getTime() < 30 * 86_400_000;
 }
 
-/** Public card: never includes phone, email, lat/lng. */
+/** Public card: never includes phone, email or exact lat/lng (only the ~1 km approxArea). */
 export function toCard(p: CardRow, opts: { distanceKm?: number | null; sponsored?: boolean; now?: Date } = {}): ProviderCard {
   const now = opts.now ?? new Date();
   const pr = presenceOf(p, now);
@@ -65,6 +65,7 @@ export function toCard(p: CardRow, opts: { distanceKm?: number | null; sponsored
     ratingCount: p.ratingCount,
     distanceKm: opts.distanceKm != null ? round1(opts.distanceKm) : null,
     locality: p.locality,
+    area: approxArea(p.id, p.lat, p.lng),
     startingPricePaise: cheapest?.pricePaise ?? null,
     startingPriceUnit: cheapest?.priceUnit ?? null,
     status: pr.status,

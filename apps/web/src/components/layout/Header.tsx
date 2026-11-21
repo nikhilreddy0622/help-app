@@ -8,7 +8,7 @@ import { useFocusTrap } from '../ui/Modal';
 import { Logo } from '../brand/Brand';
 import { NotificationBell } from '../notifications/NotificationBell';
 
-const navLink = ({ isActive }: { isActive: boolean }) => `rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-teal-tint text-teal-800' : 'text-subtle hover:bg-surface'}`;
+const navLink = ({ isActive }: { isActive: boolean }) => `rounded-full px-3.5 py-2 text-sm font-bold ${isActive ? 'bg-teal-tint text-teal-800' : 'text-subtle hover:bg-surface'}`;
 
 function AreaSwitch() {
   const { me } = useAuth();
@@ -67,7 +67,7 @@ export function Header() {
   useEffect(() => setMenu(false), [loc.pathname]);
   const area = areaOf(loc.pathname);
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-white">
+    <header className="sticky top-0 z-40 bg-white/95 shadow-sm backdrop-blur">
       <div className="container-page flex h-16 items-center gap-4">
         <Logo />
         {area === 'provider' && me && <span className="hidden rounded-md bg-teal-tint px-2 py-0.5 text-xs font-semibold text-teal-800 sm:inline">Professional</span>}
@@ -81,7 +81,7 @@ export function Header() {
           <AreaSwitch />
           {status === 'authed' && <NotificationBell />}
           {status === 'authed' ? <AccountMenu /> : status === 'anon' ? (
-            <Link to="/login" className="inline-flex h-9 items-center rounded-md bg-teal-700 px-4 text-sm font-semibold hover:bg-teal-800" style={{ color: '#fff' }}>Log in</Link>
+            <Link to="/login" className="inline-flex h-10 items-center rounded-full bg-accent px-5 text-sm font-extrabold text-accent-ink hover:brightness-95" style={{ color: '#5C4300' }}>Log in</Link>
           ) : <span className="h-9 w-20" aria-hidden />}
           <button type="button" className="rounded-md p-2 text-navy hover:bg-surface md:hidden" aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
             {menu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

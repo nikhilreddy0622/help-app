@@ -19,12 +19,12 @@ export function Mark({ size = 32, dotOpacity }: { size?: number; dotOpacity?: An
 }
 
 /** Mark plus the "help." wordmark (Inter Bold navy, teal dot). */
-export function Logo({ size = 28, mark = true }: { size?: number; mark?: boolean }) {
+export function Logo({ size = 28, mark = true, light }: { size?: number; mark?: boolean; light?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: size * 0.3 }} accessible accessibilityRole="image" accessibilityLabel="help">
       {mark ? <Mark size={size} /> : null}
-      <T weight={700} color={colors.navy} style={{ fontSize: size * 0.95, lineHeight: size * 1.2, letterSpacing: -0.5 }}>
-        help<T weight={700} color={colors.teal} style={{ fontSize: size * 0.95, lineHeight: size * 1.2 }}>.</T>
+      <T weight={800} color={light ? '#fff' : colors.navy} style={{ fontSize: size * 0.95, lineHeight: size * 1.2, letterSpacing: -0.6 }}>
+        help<T weight={800} color={light ? colors.accent : colors.teal} style={{ fontSize: size * 0.95, lineHeight: size * 1.2 }}>.</T>
       </T>
     </View>
   );

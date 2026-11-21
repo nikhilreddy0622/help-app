@@ -131,6 +131,12 @@ model Category {
   slug      String            @unique
   icon      String?
   parentId  String?
+  /// Heading the service is listed under inside its main category (e.g. "Electrical").
+  subgroup  String?
+  /// Search synonyms (e.g. "maid" for House cleaning).
+  keywords  String[]          @default([])
+  /// Stable id from the master service catalog (e.g. "SVC-0001"); makes catalog imports idempotent.
+  catalogId String?           @unique
   isActive  Boolean           @default(true)
   sortOrder Int               @default(0)
   /// Curated: only categories flagged here appear in on-demand "Request now".
