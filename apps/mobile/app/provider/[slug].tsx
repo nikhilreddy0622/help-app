@@ -164,7 +164,7 @@ export default function ProviderProfile() {
             {p.status !== 'AVAILABLE' ? <T v="caption" color={colors.textSubtle} align="center">{p.statusLabel}. You can still message; they will reply when back.</T> : null}
             <View style={{ flexDirection: 'row', gap: 10, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
               <Button size="lg" title="Chat" icon={<MessageCircle size={18} color="#fff" />} style={{ flex: 1 }} onPress={startChat} />
-              {p.phoneAvailable ? <Button kind="accent" size="lg" title="Show number" icon={<Phone size={18} color={colors.accentInk} />} loading={phoneBusy} style={{ flex: 1 }} onPress={showPhone} /> : null}
+              {p.phoneAvailable ? <Button kind="accent" size="lg" title="Number" icon={<Phone size={18} color={colors.accentInk} />} loading={phoneBusy} style={{ flex: 1 }} onPress={showPhone} /> : null}
             </View>
           </>
         )}
