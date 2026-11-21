@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { FlatList, Image, Modal, Pressable, View, useWindowDimensions } from 'react-native';
+import { FlatList, Modal, Pressable, View, useWindowDimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { T } from './ui/Text';
@@ -20,7 +21,7 @@ export function Gallery({ urls, index, onClose }: { urls: string[]; index: numbe
           onMomentumScrollEnd={(e) => setCur(Math.round(e.nativeEvent.contentOffset.x / width))}
           renderItem={({ item }) => (
             <View style={{ width, height, alignItems: 'center', justifyContent: 'center' }}>
-              <Image source={{ uri: item }} resizeMode="contain" style={{ width, height: height * 0.8 }} accessibilityLabel="Portfolio photo" />
+              <Image cachePolicy="memory-disk" contentFit="contain" transition={120} source={{ uri: item }} style={{ width, height: height * 0.8 }} accessibilityLabel="Portfolio photo" />
             </View>
           )}
         />

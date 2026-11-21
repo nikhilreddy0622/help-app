@@ -95,10 +95,10 @@ export default function Home() {
   useFocusEffect(useCallback(() => { setStatusBarStyle('light'); return () => setStatusBarStyle('dark'); }, []));
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }} stickyHeaderIndices={[1]}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.brand }}>
+      <ScrollView style={{ backgroundColor: colors.bg }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }} stickyHeaderIndices={[1]}>
         <View style={{ backgroundColor: colors.brand }}>
-          <SafeAreaView edges={['top']} style={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 14, gap: 4 }}>
+          <View style={{ paddingHorizontal: 16, paddingTop: 6, paddingBottom: 14, gap: 4 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <View style={{ flex: 1 }}><Logo size={24} light /></View>
               <HeaderIcon label={unreadMsgs ? `Messages, ${unreadMsgs} unread` : 'Messages'} badge={unreadMsgs} icon={<MessageCircle size={21} color="#fff" />} onPress={() => router.push('/messages')} />
@@ -109,7 +109,7 @@ export default function Home() {
               <T weight={800} color="#fff" numberOfLines={1} style={{ fontSize: 15, maxWidth: 230 }}>{area}</T>
               <ChevronDown size={16} color="#fff" />
             </Pressable>
-          </SafeAreaView>
+          </View>
         </View>
         <View style={{ backgroundColor: colors.brand, paddingHorizontal: 16, paddingBottom: 14, marginTop: -1, paddingTop: 1 }}>
           <Press onPress={() => router.push('/explore')} accessibilityRole="search" accessibilityLabel="Search for a service or professional" scaleTo={0.99}
@@ -163,6 +163,6 @@ export default function Home() {
           </QueryBoundary>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

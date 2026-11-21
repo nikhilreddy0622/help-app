@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import { avatarPalette, colors } from '@/lib/theme';
 import { initials } from '@/lib/format';
 import { T } from './Text';
@@ -15,7 +16,7 @@ export function Avatar({ name, url, size = 44, rounded, live }: { name?: string 
   return (
     <View style={{ width: size, height: size }}>
       {url && !failed ? (
-        <Image source={{ uri: url }} accessibilityLabel={name ?? 'Avatar'} onError={() => setFailed(true)} style={{ width: size, height: size, borderRadius: r, backgroundColor: p.bg }} />
+        <Image cachePolicy="memory-disk" contentFit="cover" transition={120} source={{ uri: url }} accessibilityLabel={name ?? 'Avatar'} onError={() => setFailed(true)} style={{ width: size, height: size, borderRadius: r, backgroundColor: p.bg }} />
       ) : (
         <View style={{ width: size, height: size, borderRadius: r, backgroundColor: p.bg, alignItems: 'center', justifyContent: 'center' }}>
           <T weight={600} color={p.fg} style={{ fontSize: Math.round(size * 0.36), lineHeight: Math.round(size * 0.46) }}>{initials(name)}</T>

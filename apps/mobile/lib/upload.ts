@@ -30,6 +30,15 @@ function postForm(url: string, form: FormData): Promise<{ status: number; body: 
   });
 }
 
+// Cloudinary explains rejections in { error: { message } }; a bad signature means server credentials, not the user.
+function uploadError(body: string): string {
+  let m = '';
+  try { m = (JSON.parse(body) as { error?: { message?: string } }).error?.message ?? ''; } catch { /* not JSON */ }
+  if (/signature|api key|api_key|cloud name/i.test(m)) return 'Photo uploads are temporarily unavailable. Please try again later.';
+  if (/file size|too large/i.test(m)) return 'That photo is too large. Choose one under 5 MB.';
+  return m ? `Upload failed: ${m}` : 'Upload failed. Please try again.';
+}
+
 /** Signed upload: api.media.sign -> multipart POST -> public URL. */
 export async function uploadImage(file: { uri: string; mime: string }, purpose: Purpose): Promise<string> {
   const sig = await api.media.sign({ purpose, contentType: file.mime as 'image/jpeg' | 'image/png' | 'image/webp' });
@@ -42,7 +51,7 @@ export async function uploadImage(file: { uri: string; mime: string }, purpose: 
     form.append('file', { uri: file.uri, name, type: file.mime } as unknown as Blob);
   }
   const res = await postForm(sig.uploadUrl, form);
-  if (res.status < 200 || res.status >= 300) throw new Error('Upload failed. Please try again.');
+  if (res.status < 200 || res.status >= 300) throw new Error(uploadError(res.body));
   try {
     const j = JSON.parse(res.body) as { secure_url?: string; url?: string };
     const direct = j.secure_url ?? j.url;

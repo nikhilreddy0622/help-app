@@ -35,6 +35,15 @@ export async function openRazorpay(o: {
   rzp.open();
 }
 
+// Cloudinary explains rejections in { error: { message } }; a bad signature means server credentials, not the user.
+function uploadError(body: string): string {
+  let m = '';
+  try { m = (JSON.parse(body) as { error?: { message?: string } }).error?.message ?? ''; } catch { /* not JSON */ }
+  if (/signature|api key|api_key|cloud name/i.test(m)) return 'Photo uploads are temporarily unavailable. Please try again later.';
+  if (/file size|too large/i.test(m)) return 'That photo is too large. Choose one under 5 MB.';
+  return m ? `Upload failed: ${m}` : 'Upload failed. Please try again.';
+}
+
 export type UploadPurpose = 'AVATAR' | 'COVER' | 'PORTFOLIO' | 'VERIFICATION' | 'ENQUIRY' | 'SUPPORT';
 /** Signed direct upload to Cloudinary: media.sign -> multipart POST. Returns the public URL. */
 export async function uploadMedia(api: ApiClient, purpose: UploadPurpose, file: File, onProgress?: (pct: number) => void): Promise<string> {
@@ -49,7 +58,7 @@ export async function uploadMedia(api: ApiClient, purpose: UploadPurpose, file: 
     xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(Math.round((e.loaded / e.total) * 100)); };
     xhr.onerror = () => reject(new Error('Upload failed. Check your connection and retry.'));
     xhr.onload = () => {
-      if (xhr.status < 200 || xhr.status >= 300) return reject(new Error('Upload was rejected'));
+      if (xhr.status < 200 || xhr.status >= 300) return reject(new Error(uploadError(xhr.responseText)));
       try {
         const j = JSON.parse(xhr.responseText) as { secure_url?: string; url?: string; public_id?: string };
         const url = j.secure_url ?? j.url ?? (j.public_id ? `${sig.publicUrlBase}${j.public_id}` : '');

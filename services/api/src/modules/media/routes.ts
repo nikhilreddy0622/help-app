@@ -97,3 +97,15 @@ mediaRouter.post('/local-upload', ah(async (req, res) => {
   // Cloudinary-shaped response so the existing web/mobile upload code reads it unchanged.
   res.status(201).json({ secure_url: `${origin(req)}/uploads/${rel}`, public_id: rel });
 }));
+
+/** Startup check: a wrong key/secret makes every upload fail with "Invalid Signature", so say so loudly in the logs. */
+export async function checkMediaConfig(log: { info: (m: string) => void; error: (o: object, m: string) => void }) {
+  if (!cloudinaryConfigured()) return log.info('Cloudinary not configured; using local uploads (dev only)');
+  cloudinary.config({ cloud_name: env.CLOUDINARY_CLOUD_NAME, api_key: env.CLOUDINARY_API_KEY, api_secret: env.CLOUDINARY_API_SECRET });
+  try {
+    await cloudinary.api.ping();
+    log.info('Cloudinary credentials OK');
+  } catch (e) {
+    log.error({ err: e }, 'CLOUDINARY CREDENTIALS INVALID: uploads will fail. Check CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET');
+  }
+}

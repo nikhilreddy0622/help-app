@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, Switch, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Switch, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
 import { CheckCircle2, ImagePlus, Plus, ShieldCheck, Trash2, Award } from 'lucide-react-native';
 import { ServiceOfferingSchema } from '@help/validation';
@@ -147,7 +148,7 @@ export function StepPortfolio() {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {items.map((it) => (
           <View key={it.id} style={{ width: '31.5%', aspectRatio: 1 }}>
-            <Image source={{ uri: it.url }} style={{ flex: 1, borderRadius: 12 }} accessibilityLabel={it.title ?? 'Portfolio photo'} />
+            <Image cachePolicy="memory-disk" contentFit="cover" transition={120} source={{ uri: it.url }} style={{ flex: 1, borderRadius: 12 }} accessibilityLabel={it.title ?? 'Portfolio photo'} />
             <Pressable onPress={() => api.providers.deletePortfolio(it.id).then(refresh).catch((e) => Alert.alert('Could not remove', errorMessage(e)))} accessibilityRole="button" accessibilityLabel="Remove photo" style={{ position: 'absolute', top: 4, right: 4, width: 28, height: 28, borderRadius: 14, backgroundColor: colors.navy, alignItems: 'center', justifyContent: 'center' }}><Trash2 size={14} color="#fff" /></Pressable>
           </View>
         ))}

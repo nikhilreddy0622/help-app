@@ -258,6 +258,11 @@ providersRouter.get('/:slug', optionalUser, ah(async (req, res) => {
     if (owner?.userId !== req.user?.id) recordView(profile.id, req.user?.id).catch(() => undefined);
     return ok(res, profile);
   }
+  // Owners can preview their own profile before it is live (draft, no plan, or hidden).
+  if (req.user) {
+    const mine = await publicProfile({ slug, userId: req.user.id, deletedAt: null }, { from });
+    if (mine) return ok(res, { ...mine, preview: true });
+  }
   const old = await prisma.slugHistory.findUnique({ where: { slug }, include: { provider: { select: { slug: true, isDiscoverable: true } } } });
   if (old?.provider.isDiscoverable) return ok(res, { redirectTo: old.provider.slug });
   throw notFound('Provider');

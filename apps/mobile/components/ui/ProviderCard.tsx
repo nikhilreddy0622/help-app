@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Image } from 'expo-image';
 import { BadgeCheck, Check, Heart, MapPin } from 'lucide-react-native';
 import type { ProviderCard as PC } from '@help/types';
 import { colors, tileColor } from '@/lib/theme';
@@ -22,7 +23,7 @@ export function ProPhoto({ p, size, radius = 18 }: { p: Pick<PC, 'displayName' |
   return (
     <View style={{ width: size, height: size, borderRadius: radius, overflow: 'hidden', backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center' }}>
       {p.avatarUrl && !failed ? (
-        <Image source={{ uri: p.avatarUrl }} onError={() => setFailed(true)} style={{ width: size, height: size }} accessibilityLabel={p.displayName} />
+        <Image cachePolicy="memory-disk" contentFit="cover" transition={120} source={{ uri: p.avatarUrl }} onError={() => setFailed(true)} style={{ width: size, height: size }} accessibilityLabel={p.displayName} />
       ) : (
         <T weight={800} color={c.fg} style={{ fontSize: size * 0.34, lineHeight: size * 0.42 }}>{initials(p.displayName)}</T>
       )}

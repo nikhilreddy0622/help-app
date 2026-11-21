@@ -86,6 +86,8 @@ export interface ReviewDto {
 }
 
 export interface ProviderPublicProfile extends ProviderCard {
+  /** Only set when the owner views their own profile before it is live. */
+  preview?: boolean;
   bio: string | null;
   coverUrl: string | null;
   languages: string[];

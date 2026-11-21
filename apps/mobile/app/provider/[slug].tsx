@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import * as Clipboard from 'expo-clipboard';
-import { Alert, Image, Pressable, ScrollView, Share, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Copy, Heart, MapPin, MessageCircle, MoreVertical, Share2, Star } from 'lucide-react-native';
+import { BadgeCheck, ChevronLeft, Copy, Heart, MapPin, MessageCircle, MoreVertical, Phone, Share2, Star } from 'lucide-react-native';
 import type { ProviderPublicProfile, ReviewDto, ServiceOffering } from '@help/types';
 import { Gallery } from '@/components/Gallery';
 import Map from '@/components/Map';
@@ -56,68 +57,91 @@ export default function ProviderProfile() {
   const share = () => Share.share({ message: `${p.displayName}, ${p.categoryName} on help: ${WEB_BASE}/professionals/${p.slug}` }).catch(() => undefined);
   const isSaved = saved.isSaved(p.id);
 
+  const tone = tileColor(p.categoryName);
+  const photos = p.portfolio.filter((i) => i.kind === 'IMAGE' || i.kind === 'CERTIFICATE');
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['left', 'right', 'bottom']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-        <View style={{ height: 170, backgroundColor: tileColor(p.categoryName).bg }}>
-          {p.coverUrl ? <Image source={{ uri: p.coverUrl }} style={{ ...StyleAbs, opacity: 0.55 }} /> : null}
+        <View style={{ height: 190, backgroundColor: tone.bg }}>
+          {p.coverUrl ? <Image cachePolicy="memory-disk" contentFit="cover" transition={120} source={{ uri: p.coverUrl }} style={StyleAbs} /> : null}
           <SafeAreaView edges={['top']} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingTop: 4 }}>
             <RoundBtn label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}><ChevronLeft size={22} color={colors.text} /></RoundBtn>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <RoundBtn label="Share profile" onPress={share}><Share2 size={20} color={colors.text} /></RoundBtn>
-              <RoundBtn label={isSaved ? 'Remove from saved' : 'Save professional'} onPress={() => saved.toggle(p.id)}><Heart size={20} color={isSaved ? colors.danger : colors.text} fill={isSaved ? colors.danger : 'transparent'} /></RoundBtn>
-              <RoundBtn label="More options" onPress={() => (signedIn ? setMenu(true) : requireAuth())}><MoreVertical size={20} color={colors.text} /></RoundBtn>
+              {!p.preview ? <RoundBtn label={isSaved ? 'Remove from saved' : 'Save professional'} onPress={() => saved.toggle(p.id)}><Heart size={20} color={isSaved ? colors.danger : colors.text} fill={isSaved ? colors.danger : 'transparent'} /></RoundBtn> : null}
+              {!p.preview ? <RoundBtn label="More options" onPress={() => (signedIn ? setMenu(true) : requireAuth())}><MoreVertical size={20} color={colors.text} /></RoundBtn> : null}
             </View>
           </SafeAreaView>
         </View>
 
-        <View style={{ paddingHorizontal: 20, gap: 16, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
-          <View style={{ marginTop: -56, width: 112, height: 112, borderRadius: 30, borderWidth: 4, borderColor: colors.white, overflow: 'hidden', backgroundColor: colors.white }}>
-            <ProPhoto p={p} size={104} radius={26} />
-          </View>
-          <View style={{ gap: 4, marginTop: -6 }}>
-            <T v="display" style={{ fontSize: 24, lineHeight: 30 }}>{p.displayName}</T>
-            <T>{p.headline || p.categoryName}{p.experienceYears ? ` · ${p.experienceYears} years` : ''}</T>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 4 }}>
-              <MapPin size={14} color={colors.textMuted} style={{ marginTop: 2 }} />
-              <T v="caption" style={{ flex: 1 }}>{[p.locality, p.serviceRadiusKm ? `serves within ${p.serviceRadiusKm} km` : '', p.languages.join(', ')].filter(Boolean).join(' · ')}</T>
+        <View style={{ paddingHorizontal: 16, gap: 14, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
+          <View style={[{ marginTop: -96, backgroundColor: colors.white, borderRadius: 24, padding: 16, gap: 14 }, shadowMd]}>
+            <View style={{ flexDirection: 'row', gap: 14 }}>
+              <ProPhoto p={p} size={96} radius={22} />
+              <View style={{ flex: 1, gap: 6, justifyContent: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <T v="title" numberOfLines={2} style={{ flexShrink: 1, fontSize: 21, lineHeight: 26 }}>{p.displayName}</T>
+                  {p.badges.identity ? <BadgeCheck size={20} color={colors.brand} accessibilityLabel="ID verified" /> : null}
+                </View>
+                <View style={{ alignSelf: 'flex-start', backgroundColor: tone.bg, paddingHorizontal: 10, height: 26, borderRadius: 13, justifyContent: 'center' }}>
+                  <T v="micro" weight={700} color={tone.fg} numberOfLines={1}>{p.categoryName}</T>
+                </View>
+                <PresencePill status={p.status} label={p.statusLabel} />
+              </View>
             </View>
+            {p.headline ? <T color={colors.textSubtle}>{p.headline}</T> : null}
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Fact onPress={() => setTab('Reviews')} top={<Rating avg={p.ratingCount ? p.ratingAvg : null} count={p.ratingCount} showCount={false} />} sub={p.ratingCount ? `${p.ratingCount} review${p.ratingCount === 1 ? '' : 's'}` : 'No reviews yet'} />
+              <Fact top={<T v="heading">{p.experienceYears ? `${p.experienceYears} yrs` : 'New'}</T>} sub="experience" />
+              <Fact top={<T v="heading">{p.responseMinutes != null ? `~${p.responseMinutes}m` : '—'}</T>} sub="reply time" />
+            </View>
+            <StatusNote message={p.statusMessage} updatedAt={p.statusUpdatedAt} />
           </View>
-          <BadgeRow badges={p.badges} qualificationLabel={p.qualifications[0]} />
 
-          <View style={[{ flexDirection: 'row', backgroundColor: colors.white, borderRadius: 18, paddingVertical: 14 }, shadowSm]}>
-            <Stat onPress={() => setTab('Reviews')} top={p.ratingCount ? <Rating avg={p.ratingAvg} count={p.ratingCount} showCount={false} /> : <T v="heading">New</T>} sub={`${p.ratingCount} review${p.ratingCount === 1 ? '' : 's'}`} />
-            <Stat top={<T v="heading">{new Date(p.memberSince).getFullYear()}</T>} sub="member since" bordered />
-            <Stat top={<T v="heading">{p.responseMinutes != null ? `~${p.responseMinutes} min` : '—'}</T>} sub="reply time" />
-          </View>
+          {p.preview ? (
+            <View style={{ backgroundColor: colors.accentSoft, borderRadius: 20, padding: 16, gap: 10 }}>
+              <T v="heading" color={colors.accentInk}>Preview of your profile</T>
+              <T v="caption" color="#7A5A14">This is how customers will see you. You are not shown in search yet. Choose a plan to go live.</T>
+              <Button kind="dark" size="sm" title="Choose a plan" style={{ alignSelf: 'flex-start' }} onPress={() => router.push('/onboarding?section=plan&edit=1')} />
+            </View>
+          ) : null}
+
+          {(p.badges.mobile || p.badges.identity || p.badges.qualification) ? (
+            <View style={[{ backgroundColor: colors.white, borderRadius: 20, padding: 14, gap: 10 }, shadowSm]}>
+              <T v="label" color={colors.textMuted}>Verified by help</T>
+              <BadgeRow badges={p.badges} qualificationLabel={p.qualifications[0]} />
+            </View>
+          ) : null}
 
           <LocationCard p={p} />
 
-          <View style={{ flexDirection: 'row', gap: 4, backgroundColor: colors.surfaceMuted, borderRadius: 14, padding: 4 }} accessibilityRole="tablist">
+          <View style={{ flexDirection: 'row', gap: 4, backgroundColor: colors.white, borderRadius: 16, padding: 4 }} accessibilityRole="tablist">
             {(['Services', 'About', 'Portfolio', 'Reviews'] as Tab[]).map((t) => (
-              <Pressable key={t} onPress={() => setTab(t)} accessibilityRole="tab" accessibilityState={{ selected: tab === t }} style={{ flex: 1, height: 40, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: tab === t ? colors.white : 'transparent' }}>
-                <T v="label" weight={tab === t ? 700 : 600} color={tab === t ? colors.text : colors.textMuted} style={{ fontSize: 13 }}>{t}</T>
+              <Pressable key={t} onPress={() => setTab(t)} accessibilityRole="tab" accessibilityState={{ selected: tab === t }} style={{ flex: 1, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: tab === t ? colors.brand : 'transparent' }}>
+                <T v="label" weight={700} color={tab === t ? '#fff' : colors.textMuted} style={{ fontSize: 13 }}>{t === 'Portfolio' ? 'Photos' : t}</T>
               </Pressable>
             ))}
           </View>
 
           {tab === 'Services' ? (
-            p.services.length === 0 ? <T color={colors.textMuted}>Prices are shared on request.</T> : (
-              <View>{p.services.map((s) => (
-                <View key={s.id} style={{ minHeight: 52, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottomWidth: 1, borderBottomColor: colors.divider }}>
-                  <View style={{ flex: 1 }}><T>{s.title}</T>{s.negotiable ? <T v="caption">Negotiable</T> : null}</View>
-                  {priceNode(s)}
+            p.services.length === 0 ? <EmptyState title="No prices listed yet" body="Chat to ask about their charges." /> : (
+              <View style={{ gap: 10 }}>{p.services.map((s) => (
+                <View key={s.id} style={[{ backgroundColor: colors.white, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }, shadowSm]}>
+                  <View style={{ width: 6, alignSelf: 'stretch', borderRadius: 3, backgroundColor: tone.fg, opacity: 0.35 }} />
+                  <View style={{ flex: 1, gap: 2 }}><T weight={700}>{s.title}</T>{s.negotiable ? <T v="caption">Price negotiable</T> : s.description ? <T v="caption" numberOfLines={2}>{s.description}</T> : null}</View>
+                  <View style={{ backgroundColor: colors.surfaceMuted, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6 }}>{priceNode(s)}</View>
                 </View>
               ))}</View>
             )
           ) : null}
-          {tab === 'About' ? <About p={p} /> : null}
+          {tab === 'About' ? <View style={[{ backgroundColor: colors.white, borderRadius: 20, padding: 16 }, shadowSm]}><About p={p} /></View> : null}
           {tab === 'Portfolio' ? (
-            p.portfolio.length === 0 ? <T color={colors.textMuted}>No portfolio items yet.</T> : (
+            photos.length === 0 ? <EmptyState title="No work photos yet" body="Ask them in chat to share photos of past work." /> : (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {p.portfolio.filter((i) => i.kind === 'IMAGE' || i.kind === 'CERTIFICATE').map((it, i) => (
-                  <Pressable key={it.id} onPress={() => setGallery(i)} accessibilityRole="imagebutton" accessibilityLabel={it.title ?? 'Portfolio photo'} style={{ width: '31.5%', aspectRatio: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: colors.surfaceMuted }}>
-                    <Image source={{ uri: it.url }} style={{ width: '100%', height: '100%' }} />
+                {photos.map((it, i) => (
+                  <Pressable key={it.id} onPress={() => setGallery(i)} accessibilityRole="imagebutton" accessibilityLabel={it.title ?? 'Work photo'} style={{ width: '31.8%', aspectRatio: 1, borderRadius: 16, overflow: 'hidden', backgroundColor: colors.surfaceMuted }}>
+                    <Image cachePolicy="memory-disk" contentFit="cover" transition={120} source={{ uri: it.url }} style={{ width: '100%', height: '100%' }} />
                   </Pressable>
                 ))}
               </View>
@@ -125,36 +149,33 @@ export default function ProviderProfile() {
           ) : null}
           {tab === 'Reviews' ? (
             <>
-              <ReviewPrompt canReview={!!elig.data?.canReview} reason={elig.data?.reason} signedIn={signedIn} onWrite={() => router.push(`/review/${p.id}`)} onSignIn={requireAuth} />
+              {!p.preview ? <ReviewPrompt canReview={!!elig.data?.canReview} reason={elig.data?.reason} signedIn={signedIn} onWrite={() => router.push(`/review/${p.id}`)} onSignIn={requireAuth} /> : null}
               <Reviews p={p} />
             </>
           ) : null}
-
-          <View style={{ gap: 6 }}>
-            <PresencePill status={p.status} label={p.statusLabel} />
-            <StatusNote message={p.statusMessage} updatedAt={p.statusUpdatedAt} />
-          </View>
         </View>
       </ScrollView>
 
-      <View style={[{ padding: 16, paddingBottom: 12, gap: 8, backgroundColor: colors.white, borderTopLeftRadius: 22, borderTopRightRadius: 22 }, shadowMd]}>
-        {p.status !== 'AVAILABLE' ? (
-          <T v="caption" color={colors.textSubtle} align="center">
-            {p.statusLabel}. You can still message; they will reply when back.
-          </T>
-        ) : null}
-        <View style={{ flexDirection: 'row', gap: 10, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
-          <Button size="lg" title="Chat" icon={<MessageCircle size={18} color="#fff" />} style={{ flex: 1 }} onPress={startChat} />
-          {p.phoneAvailable ? <Button kind="accent" size="lg" title="Show number" loading={phoneBusy} style={{ flex: 1 }} onPress={showPhone} /> : null}
-        </View>
+      <View style={[{ padding: 16, paddingBottom: 12, gap: 8, backgroundColor: colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24 }, shadowMd]}>
+        {p.preview ? (
+          <Button size="lg" title="Edit my profile" onPress={() => router.push('/p-profile')} />
+        ) : (
+          <>
+            {p.status !== 'AVAILABLE' ? <T v="caption" color={colors.textSubtle} align="center">{p.statusLabel}. You can still message; they will reply when back.</T> : null}
+            <View style={{ flexDirection: 'row', gap: 10, width: '100%', maxWidth: 720, alignSelf: 'center' }}>
+              <Button size="lg" title="Chat" icon={<MessageCircle size={18} color="#fff" />} style={{ flex: 1 }} onPress={startChat} />
+              {p.phoneAvailable ? <Button kind="accent" size="lg" title="Show number" icon={<Phone size={18} color={colors.accentInk} />} loading={phoneBusy} style={{ flex: 1 }} onPress={showPhone} /> : null}
+            </View>
+          </>
+        )}
       </View>
 
       <Sheet visible={!!phone} onClose={() => setPhone(null)} title={`${p.displayName}'s number`}>
-        <T style={{ fontSize: 28, lineHeight: 34 }} weight={700} color={colors.navy} selectable>{phone}</T>
-        <Button title="Copy" icon={<Copy size={18} color="#fff" />} onPress={async () => { await Clipboard.setStringAsync(phone ?? ''); Alert.alert('Copied', 'Phone number copied to clipboard.'); }} />
+        <T style={{ fontSize: 28, lineHeight: 34 }} weight={800} color={colors.text} selectable>{phone}</T>
+        <Button title="Copy number" icon={<Copy size={18} color="#fff" />} onPress={async () => { await Clipboard.setStringAsync(phone ?? ''); Alert.alert('Copied', 'Phone number copied to clipboard.'); }} />
         <T v="caption">Please be respectful of working hours. Prefer chat for first contact.</T>
       </Sheet>
-      <Gallery urls={p.portfolio.filter((i) => i.kind === 'IMAGE' || i.kind === 'CERTIFICATE').map((i) => i.url)} index={gallery} onClose={() => setGallery(null)} />
+      <Gallery urls={photos.map((i) => i.url)} index={gallery} onClose={() => setGallery(null)} />
       <MenuSheet visible={menu} onClose={() => setMenu(false)} p={p} />
     </SafeAreaView>
   );
@@ -176,9 +197,9 @@ function RoundBtn({ children, label, onPress }: { children: React.ReactNode; lab
   return <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.85)', alignItems: 'center', justifyContent: 'center' }}>{children}</Pressable>;
 }
 
-function Stat({ top, sub, bordered, onPress }: { top: React.ReactNode; sub: string; bordered?: boolean; onPress?: () => void }) {
+function Fact({ top, sub, onPress }: { top: React.ReactNode; sub: string; onPress?: () => void }) {
   return (
-    <Pressable onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined} style={{ flex: 1, alignItems: 'center', gap: 2, borderLeftWidth: bordered ? 1 : 0, borderRightWidth: bordered ? 1 : 0, borderColor: colors.border }}>
+    <Pressable onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined} style={{ flex: 1, alignItems: 'center', gap: 4, backgroundColor: colors.surfaceMuted, borderRadius: 14, paddingVertical: 10 }}>
       {top}
       <T v="caption" style={{ fontSize: 12 }}>{sub}</T>
     </Pressable>

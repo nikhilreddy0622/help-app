@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Pressable, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Camera, X } from 'lucide-react-native';
@@ -50,7 +51,7 @@ export default function NewTicket() {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {photos.map((f) => (
           <View key={f.uri} style={{ width: 64, height: 64 }}>
-            <Image source={{ uri: f.uri }} style={{ width: 64, height: 64, borderRadius: 10 }} accessibilityLabel="Attachment" />
+            <Image cachePolicy="memory-disk" contentFit="cover" transition={120} source={{ uri: f.uri }} style={{ width: 64, height: 64, borderRadius: 10 }} accessibilityLabel="Attachment" />
             <Pressable onPress={() => setPhotos((x) => x.filter((y) => y.uri !== f.uri))} accessibilityRole="button" accessibilityLabel="Remove attachment" style={{ position: 'absolute', top: -8, right: -8, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.navy, alignItems: 'center', justifyContent: 'center' }}><X size={14} color="#fff" /></Pressable>
           </View>
         ))}

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, FlatList, Image, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
+import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -62,7 +63,7 @@ export default function TicketThread() {
                 {item.attachments.length ? (
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                     {item.attachments.map((u, i) => (
-                      <Pressable key={u} onPress={() => setViewer({ urls: item.attachments, i })} accessibilityRole="imagebutton" accessibilityLabel="Open attachment"><Image source={{ uri: u }} style={{ width: 72, height: 72, borderRadius: 8 }} /></Pressable>
+                      <Pressable key={u} onPress={() => setViewer({ urls: item.attachments, i })} accessibilityRole="imagebutton" accessibilityLabel="Open attachment"><Image cachePolicy="memory-disk" contentFit="cover" transition={120} source={{ uri: u }} style={{ width: 72, height: 72, borderRadius: 8 }} /></Pressable>
                     ))}
                   </View>
                 ) : null}
