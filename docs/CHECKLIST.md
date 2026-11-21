@@ -59,6 +59,14 @@ _Last updated 2026-11-14. Read this first when resuming._
 - Map pins (provider coordinates are private by design; consider approximate pins)
 - Hindi/regional language UI
 
+## 2026-11-21 launch fixes
+- [x] Final legal text (terms, privacy, refunds, grievance) shared from `@help/domain`; no placeholders left (web + app)
+- [x] Public `/delete-account` page (no login), linked in footer and legal pages
+- [x] Website jobs board: `/jobs` (search, type filter) and `/jobs/:id` (log in to see number, copy button)
+- [x] Admin panel restyled to the brand theme (sidebar, cards, buttons, login)
+- [x] Profile photo fix: account photo and professional photo now stay in sync; account photo saves on upload
+- [ ] App needs a new build for the legal text and photo auto-save (API part is live)
+
 ## Known issues
 - Mobile chat and SSE assume the API behaviour noted above; nothing has run against a live API yet
 - Admin: Payments totals cover loaded rows only; bundle not code-split
