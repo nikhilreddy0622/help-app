@@ -14,6 +14,7 @@ import { RealtimeProvider } from '@/lib/realtime';
 import { configureNotifications } from '@/lib/push';
 import { CompareProvider } from '@/lib/compare';
 import { BrandLoader } from '@/components/Logo';
+import { AppErrorBoundary } from '@/components/ErrorBoundary';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 configureNotifications();
@@ -34,9 +35,11 @@ function Gate() {
 }
 
 export default function RootLayout() {
-  const [loaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold });
-  if (!loaded) return null;
+  const [loaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold });
+  // If a font fails to load, carry on with the system font rather than a blank screen.
+  if (!loaded && !fontError) return null;
   return (
+    <AppErrorBoundary>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
@@ -51,5 +54,6 @@ export default function RootLayout() {
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+    </AppErrorBoundary>
   );
 }
