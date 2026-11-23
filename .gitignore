@@ -10,3 +10,8 @@ coverage/
 infrastructure/devdb/data/
 .neon
 services/api/uploads/
+
+# marketing working files (regenerable)
+marketing/_src/
+marketing/_tools/node_modules/
+marketing/**/.*.video.mp4

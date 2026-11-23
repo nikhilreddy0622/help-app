@@ -67,6 +67,10 @@ _Last updated 2026-11-14. Read this first when resuming._
 - [x] Profile photo fix: account photo and professional photo now stay in sync; account photo saves on upload
 - [ ] App needs a new build for the legal text and photo auto-save (API part is live)
 
+## 2026-11-23 marketing assets
+- [x] `marketing/`: 5:21 explainer, 4 YouTube walkthroughs, 6 reels, 4 Shorts, thumbnails, 10-slide sales deck (see marketing/README.md)
+- [x] Pipeline in `marketing/_tools` (local capture, Kokoro TTS, generated music, PIL+ffmpeg, pptxgenjs); claims checked against marketing/BRIEF.md
+
 ## Known issues
 - Mobile chat and SSE assume the API behaviour noted above; nothing has run against a live API yet
 - Admin: Payments totals cover loaded rows only; bundle not code-split
